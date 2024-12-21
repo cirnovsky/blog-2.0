@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「P1707」刷题比赛 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「P1707」刷题比赛</h1><h2>题意简述</h2>
+<p>给你三个互相依赖的递推式，分别求值。</p>
+<h2>题解</h2>
+<p>裸的矩阵快速幂，我们把这几个东西放进矩阵：</p>
+<p>$
+B=\begin{bmatrix}
+a_{k}\
+a_{k+1}\
+b_{k}\
+b_{k+1}\
+c_{k}\
+c_{k+1}\
+k^{2}\
+k\
+w^{k}\
+2^{k}\
+1
+\end{bmatrix}
+$</p>
+<p>则初始矩阵为：</p>
+<p>$
+S=\begin{bmatrix}
+a_{1}\
+a_{2}\
+b_{1}\
+b_{2}\
+c_{1}\
+c_{2}\
+1^{2}\
+1\
+w^{1}\
+2^{1}\
+1
+\end{bmatrix}
+=\begin{bmatrix}
+1\
+3\
+1\
+3\
+1\
+3\
+1\
+1\
+w\
+2\
+1
+\end{bmatrix}
+$</p>
+<p>转移矩阵为：</p>
+<p>$
+A=\begin{bmatrix}
+0&amp;1&amp;0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;0\
+q&amp;p&amp;0&amp;1&amp;0&amp;1&amp;r&amp;t&amp;0&amp;0&amp;1\
+0&amp;0&amp;0&amp;1&amp;0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;0\
+0&amp;1&amp;v&amp;u&amp;0&amp;1&amp;0&amp;0&amp;1&amp;0&amp;0\
+0&amp;0&amp;0&amp;0&amp;0&amp;1&amp;0&amp;0&amp;0&amp;0&amp;0\
+0&amp;1&amp;0&amp;1&amp;y&amp;x&amp;0&amp;1&amp;0&amp;1&amp;2\
+0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;1&amp;2&amp;0&amp;0&amp;1\
+0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;1&amp;0&amp;0&amp;1\
+0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;w&amp;0&amp;0\
+0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;z&amp;0\
+0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;0&amp;1
+\end{bmatrix}
+$</p>
+<p>则最终的答案矩阵为：</p>
+<p>$
+T=A^{n-2}\times S
+$</p>
+<p>答案的位置显然。</p>
+<p>总的来说算是一道套路的矩阵加速题，可以给新手做一下。不过我草稿纸写z抄代码上去成了2也是nt行为。</p>
+<p>代码：</p>
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+using namespace std;
+
+template &lt; typename Type &gt;
+void read( Type&amp; a )
+{
+	a = 0;
+	char ch = getchar( );
+	bool minus = 0;
+	while( !isdigit( ch ) )
+	{
+		if( ch == &#39;-&#39; ) minus = 1;
+		ch = getchar( );
+	}
+	while( isdigit( ch ) )
+	{
+		a = ( a &lt;&lt; 3 ) + ( a &lt;&lt; 1 ) + ( ch ^ &#39;0&#39; );
+		ch = getchar( );
+	}
+	if( minus == 1 ) a = -a;
+}
+
+template &lt; typename Type, typename... Args &gt;
+void read( Type&amp; t, Args&amp;... args )
+{
+	read(t), read(args...);
+}
+
+void write( __int128 x )
+{
+	if( x &lt; 0 )	putchar( &#39;-&#39; ), x = -x;
+	if( x &gt; 9 )	write( x / 10 );
+	putchar( x % 10 + &#39;0&#39; );
+}
+
+const __int128 Maxn = 11;
+__int128 n, m, p, q, r, t, u, v, w, x, y, z;
+struct Matrix
+{
+	__int128 mat[ Maxn ][ Maxn ];
+	Matrix( __int128 x = 0 ) { memset ( mat, x, sizeof ( mat ) ); }
+
+	Matrix operator * ( const Matrix&amp; rhs ) const
+	{
+		Matrix ret;
+		for( __int128 i = 0; i &lt; Maxn; ++ i )
+			for( __int128 j = 0; j &lt; Maxn; ++ j )
+				for( __int128 k = 0; k &lt; Maxn; ++ k )
+					ret.mat[ i ][ j ] = ( ret.mat[ i ][ j ] + 1ll * mat[ i ][ k ] * rhs.mat[ k ][ j ] ) % m;
+		return ret;
+	}
+} unit, meta;
+
+void Make_Unit( )
+{
+	for ( __int128 i = 0; i &lt; Maxn; ++ i )
+		unit.mat[ i ][ i ] = 1;
+}
+
+void Make_Meta( )
+{
+	__int128 cpy[ Maxn ][ Maxn ] = 
+	{
+		{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ q, p, 0, 1, 0, 1, r, t, 0, 0, 1 },
+		{ 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 1, v, u, 0, 1, 0, 0, 1, 0, 0 },
+		{ 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 },
+		{ 0, 1, 0, 1, y, x, 0, 1, 0, 1, 2 },
+		{ 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 1 },
+		{ 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1 },
+		{ 0, 0, 0, 0, 0, 0, 0, 0, w, 0, 0 },
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, z, 0 },
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }
+	};
+	memcpy( meta.mat, cpy, sizeof( cpy ) );
+}
+
+signed main( )
+{
+	read( n, m, p, q, r, t, u, v, w, x, y, z );
+	Make_Unit( ), Make_Meta( );
+
+	__int128 tS[ Maxn ][ Maxn ] = 
+	{
+		{ 1 }, { 3 }, { 1 }, { 3 }, { 1 }, { 3 }, { 1 }, { 1 }, { w }, { z }, { 1 }
+	};
+	Matrix S;
+	memcpy( S.mat, tS, sizeof( tS ) );
+
+	__int128 k = n - 2;
+	Matrix ret = unit, base = meta;
+	for( ; k; k &gt;&gt;= 1, base = base * base )
+		if( k &amp; 1 )	ret = ret * base;
+	ret = ret * S;
+	printf( &quot;nodgd &quot; ), write( ret.mat[ 1 ][ 0 ] ), putchar( &#39;\n&#39; );
+	printf( &quot;Ciocio &quot; ), write( ret.mat[ 3 ][ 0 ] ), putchar( &#39;\n&#39; );
+	printf( &quot;Nicole &quot; ), write( ret.mat[ 5 ][ 0 ] ), putchar( &#39;\n&#39; );
+	return 0;
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

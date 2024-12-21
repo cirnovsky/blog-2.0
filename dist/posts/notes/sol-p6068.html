@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「MdOI 2020」GCD? GCD! | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「MdOI 2020」GCD? GCD!</h1><p>其实有一种很简单的方法。。。</p>
+<p>我们可以直接枚举答案。。。</p>
+<p>主要是判断，具体看代码注释</p>
+<p>因为做法是在是过于简单，故代码中的注释可能不会很多。</p>
+<p>但是因为做法简单，所以大家应该都能看懂（不要说我说明过少。。。</p>
+<p>时间复杂度:$\Theta(T\sqrt n)$</p>
+<pre><code class="language-cpp">using namespace std;
+
+int ans;
+int T, n;
+
+signed main() {
+	for (read(T); T; --T) {
+	    read(n);
+		if (n &lt;= 5) { // 特判-1
+		    write(io_l, -1);
+		    continue;
+		}
+		int res = 0;
+		for (int i = 2; i * i &lt;= n; ++i) { // 枚举每一个约数
+			if (n % i == 0) {
+				if (n / i &gt;= 6) res = max(res, i); // 因为我们需要将n分为3份，所以n/i应该&gt;=6
+				if (n / (n / i) &gt;= 6) res = max(res, n / i); 
+			}
+		}
+		write(io_l, res ? res : 1);
+	}
+	return 0;
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

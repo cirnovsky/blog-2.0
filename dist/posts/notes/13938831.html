@@ -1,0 +1,3568 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Record -「NOIP-S 2020」赛前强基 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Record -「NOIP-S 2020」赛前强基</h1><p>沉心静气，少逼两句。</p>
+<h3>HDU6832 Very Easy Graph Problem - AC</h3>
+<p>建出一棵 $\texttt{MST}$，然后乱算一下即可。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#include &lt;algorithm&gt;
+#define mod ( 1000000007 )
+
+using namespace std;
+typedef long long LL;
+
+const int MAXN = 1e5 + 5, MAXM = 2e5 + 5;
+
+template&lt;typename _T&gt;
+void read( _T &amp;x ){
+	x = 0; char c = getchar( ); _T f = 1;
+	while( c &lt; &#39;0&#39; || c &gt; &#39;9&#39; ){ if( c == &#39;-&#39; )	f = -1; c = getchar( ); }
+	while( c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39; ){ x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 ); c = getchar( ); }
+	x *= f;
+}
+
+template&lt;typename _T&gt;
+void write( _T x ){
+	if( x &lt; 0 ){ putchar( &#39;-&#39; ); x = -x; }
+	if( x &gt; 9 )	write( x / 10 );
+	putchar( x % 10 + &#39;0&#39; );
+}
+
+struct starS{
+	int to, nx, wt;
+	starS( int T = 0, int N = 0, int W = 0 ){ to = T; nx = N; wt = W; }
+} as[MAXM * 2];
+
+struct edgeS{
+	int u, v, w;
+	edgeS( int U = 0, int V = 0, int W = 0 ){ u = U; v = V; w = W; }
+	bool operator &lt; ( const edgeS &amp;another ){ return w &lt; another.w; }
+} tur[MAXM];
+
+int N, M;
+int totE, Ans;
+int col[MAXN], firS[MAXN], ufs[MAXN], fur[MAXN][2];
+
+void clearIt( ){ for( int i = 0; i &lt;= N; ++ i )	fur[i][0] = fur[i][1] = firS[i] = totE = Ans = 0; }
+void pushEdge( int u, int v, int w ){ as[++ totE] = starS( v, firS[u], w ); firS[u] = totE; }
+void makeSet( int lim ){ for( int i = 1; i &lt;= lim; ++ i )	ufs[i] = i; }
+int findSet( int u ){ return u != ufs[u] ? ufs[u] = findSet( ufs[u] ) : ufs[u]; }
+bool unionSet( int u, int v ){
+	u = findSet( u ); v = findSet( v );
+	if( u != v ){ ufs[u] = v; return 1; }
+	else	return 0;
+}
+
+int Qkpow( int base, int indx ){
+	int res = 1;
+	while( indx ){
+		if( indx &amp; 1 )	res = ( LL )res * base % mod;
+		base = ( LL )base * base % mod;
+		indx &gt;&gt;= 1;
+	}
+	return res;
+}
+
+void Spannin( ){
+	makeSet( N ); sort( tur + 1, tur + 1 + M );
+	for( int i = 1; i &lt;= M; ++ i ){
+		int u = tur[i].u, v = tur[i].v, w = Qkpow( 2, tur[i].w );
+		if( unionSet( u, v ) ){ pushEdge( u, v, w ); pushEdge( v, u, w ); }
+	}
+}
+
+void DFS( int u, int lst ){
+	fur[u][col[u]] = 1;
+	for( int i = firS[u]; i; i = as[i].nx ){
+		int v = as[i].to;
+		if( v == lst )	continue;
+		DFS( v, u );
+		fur[u][0] += fur[v][0]; fur[u][1] += fur[v][1];
+	}
+	for( int i = firS[u]; i; i = as[i].nx ){
+		int v = as[i].to, w = as[i].wt;
+		if( v == lst )	continue;
+		for( int k = 0; k &lt; 2; ++ k )	Ans = ( Ans + ( ( LL )( fur[0][k] - fur[v][k] ) * fur[v][k ^ 1] % mod * w % mod ) ) % mod;
+	}
+}
+
+int main( ){
+	int T; read( T ); while( T -- &gt; 0 ){
+		read( N ); read( M ); clearIt( );
+		for( int i = 1; i &lt;= N; ++ i ){ read( col[i] ); fur[0][col[i]] ++; }
+		for( int i = 1, u, v; i &lt;= M; ++ i ){
+			read( u ); read( v );
+			tur[i] = edgeS( u, v, i );
+		}
+		Spannin( ); DFS( 1, 0 );
+		write( Ans ), putchar( &#39;\n&#39; );
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>Gym - 102331G Grammarly - AC</h3>
+<p>我们用 $(S)$ 表示字符串 $S$ 在自动机上的节点。</p>
+<p>先考虑没有相邻字符相同的情况，这样建出来的自动机就是一个完全二叉树，答案为 $2^{n}-1$。</p>
+<p>考虑相邻字符有相同的情况。我们考虑一个极长的子串，设为 $S&#39;\in S$，满足对 $\forall i,j$，有  $s_{i}=s_{j}$。</p>
+<p>设 $S&#39;$ 在 $S$ 中的区间为 $[l,r]$，则我们有 ${l-1+|S|-r\choose l-1}$。然后因为 $S&#39;$ 的定义，所以 $(S&#39;)$ 下面是一条长度为 $r-l+1$ 的链。</p>
+<p>因此 $S&#39;$ 的贡献为 ${l-1+|S|-r\choose l-1}\times(r-l+1)$。</p>
+<p>然后我们枚举前/后缀算子串贡献：
+$
+\texttt{prefix:}\sum_{i=l}^{r-1}{l-2+|S|-i\choose l-2}\times(i-l+1)
+$
+$
+\texttt{suffix:}\sum_{i=l+1}^{r}{i-2+|S|-r\choose i-1}\times(r-i+1)
+$
+最后加个：
+$
+\sum_{l=1}^{|S|}{l+n-r\choose l}
+$</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#define mod ( 998244353 )
+
+typedef long long LL;
+
+const int MAXN = 5e5 + 5;
+
+int N;
+int fac[MAXN], inv[MAXN];
+char str[MAXN];
+
+int strlen( const char * str ){
+	int res = 0;
+	for( ; * ( str ++ ) != &#39;\0&#39;; ++ res ) ;
+	return res;
+}
+
+void Exgcd( int A, int B, int &amp;x, int &amp;y ){
+	if( ! B ){ x = 1; y = 0; }
+	else{ Exgcd( B, A % B, y, x ); y -= ( A / B ) * x; }
+}
+
+int Inv( int val ){
+	int res, was;
+	Exgcd( val, mod, res, was );
+	return ( res % mod + mod ) % mod;
+}
+
+void ProgressFacts( ){
+	fac[0] = 1;
+	for( int i = 1; i &lt;= N; ++ i )	fac[i] = ( LL )fac[i - 1] * i % mod;
+	for( int i = 0; i &lt;= N; ++ i )	inv[i] = Inv( fac[i] );
+}
+
+int C( int n, int k ){ return ( LL )fac[n] * inv[k] % mod * inv[n - k] % mod; }
+int main( ){
+	scanf( &quot;%s&quot;, str + 1 );
+	N = strlen( str + 1 );
+	ProgressFacts( );
+	int Ans = 0;
+	for( int l = 1, r; l &lt;= N; l = r + 1 ){
+		r = l;
+		while( str[r] == str[r + 1] )	r ++;
+		Ans = ( Ans + ( LL )C( l - 1 + N - r, l - 1 ) * ( r - l + 1 ) % mod ) % mod;
+		for( int i = l; i &lt; r; ++ i )	Ans = ( Ans + ( LL )C( l - 2 + N - i, l - 2 ) * ( i - l + 1 ) % mod ) % mod;
+		for( int i = l + 1; i &lt;= r; ++ i )	Ans = ( Ans + ( LL )C( i - 2 + N - r, i - 1 ) * ( r - i + 1 ) % mod ) % mod;
+		for( int i = l; i &lt;= r; ++ i )	Ans = ( Ans + C( i - 1 + N - r, i ) ) % mod;
+	}
+	printf( &quot;%d\n&quot;, Ans );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>HDU6805 Deliver the Cake - AC</h3>
+<p>傻逼细节。</p>
+<p>拆点跑最短路即可。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#include &lt;queue&gt;
+
+using namespace std;
+typedef long long LL;
+
+const int MAXN = 1e6 + 5;
+
+template&lt;typename _T&gt;
+void read( _T &amp;x ){
+	x = 0; char c = getchar( ); _T f = 1;
+	while( c &lt; &#39;0&#39; || c &gt; &#39;9&#39; ){ if( c == &#39;-&#39; )	f = -1; c = getchar( ); }
+	while( c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39; ){ x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 ); c = getchar( ); }
+	x *= f;
+}
+
+template&lt;typename _T&gt;
+void write( _T x ){
+	if( x &lt; 0 ){ putchar( &#39;-&#39; ); x = -x; }
+	if( x &gt; 9 )	write( x / 10 );
+	putchar( x % 10 + &#39;0&#39; );
+}
+
+struct heapS{
+	int pnt;
+	LL val;
+	heapS( int P = 0, LL V = 0 ){ pnt = P; val = V; }
+	bool operator &lt; ( const heapS &amp;another ) const { return val &lt; another.val; }
+};
+
+struct starS{
+	int to, nx;
+	LL wt;
+	starS( int T = 0, int N = 0, LL W = 0 ){ to = T; nx = N; wt = W; }
+} as[MAXN * 2];
+
+int N, M, S, T, X;
+int totE;
+int firS[MAXN], col[MAXN], vis[MAXN];
+LL dis[MAXN];
+char str[MAXN];
+
+void clearIt( ){ for( int i = 0; i &lt;= N * 2 + 5; ++ i ){ vis[i] = 0; dis[i] = 1e18; firS[i] = 0; } totE = 0; }
+void pushingEdge( int u, int v, LL w ){ as[++ totE] = starS( v, firS[u], w ); firS[u] = totE; }
+void pushEdge( int u, int v, LL w ){ pushingEdge( u, v, w ); pushingEdge( v, u, w ); }
+
+LL GetPath( int S, int T ){
+	priority_queue&lt;heapS&gt; align;
+	align.push( heapS( S, 0 ) );
+	dis[S] = 0;
+	while( ! align.empty( ) ){
+		int u = align.top( ).pnt;
+		align.pop( );
+		if( vis[u] )	continue;
+		vis[u] = 1;
+		for( int i = firS[u]; i; i = as[i].nx ){
+			int v = as[i].to;
+			LL w = as[i].wt;
+			if( dis[v] &gt; dis[u] + w ){
+				dis[v] = dis[u] + w;
+				align.push( heapS( v, -dis[v] ) );
+			}
+		}
+	}
+	return dis[T];
+}
+
+int main( ){
+	int TC; read( TC ); while( TC -- &gt; 0 ){
+		read( N ); read( M ); read( S ); read( T ); read( X );
+		scanf( &quot;%s&quot;, str + 1 ); clearIt( );
+		for( int i = 1; i &lt;= N; ++ i ){
+			char c = str[i];
+			if( c == &#39;L&#39; )	col[i] = 0;
+			else if( c == &#39;R&#39; )	col[i] = 1;
+			else	col[i] = 2;
+		}
+		for( int i = 1, u, v; i &lt;= M; ++ i ){
+			LL w;
+			read( u ); read( v ); read( w );
+			if( col[u] == 0 ){
+				if( col[v] == 0 )	pushEdge( u, v, w );
+				else if( col[v] == 1 )	pushEdge( u, v, w + X );
+				else{ pushEdge( u, v, w ); pushEdge( u, v + N, w + X ); }
+			}
+			else if( col[u] == 1 ){
+				if( col[v] == 1 )	pushEdge( u, v, w );
+				else if( col[v] == 0 )	pushEdge( v, u, w + X );
+				else{ pushEdge( u, v, w + X ); pushEdge( u, v + N, w ); }
+			}
+			else{
+				if( col[v] == 0 ){ pushEdge( u, v, w ); pushEdge( u + N, v, w + X ); }
+				else if( col[v] == 1 ){ pushEdge( u, v, w + X ); pushEdge( u + N, v, w ); }
+				else{ pushEdge( u, v, w ); pushEdge( u + N, v + N, w ); pushEdge( u + N, v, w + X ); pushEdge( u, v + N, w + X ); }
+			}
+		}
+		if( str[S] == &#39;M&#39; ){ pushEdge( 0, S, 0 ); pushEdge( 0, S + N, 0 ); S = 0; }
+		if( str[T] == &#39;M&#39; ){ pushEdge( T, 2 * N + 1, 0 ); pushEdge( T + N, 2 * N + 1, 0 ); T = 2 * N + 1; }
+		write( GetPath( S, T ) ), putchar( &#39;\n&#39; );
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>CF107B Basketball Team</h3>
+<p>令</p>
+<p>$
+S=\sum_{i=1}^{m}s_{i}
+$
+所有情况数：
+$
+{S-1\choose n-1}
+$
+不可能的情况数：
+$
+{S-m_{h}\choose n-1}
+$
+答案：
+$
+1-\frac{{S-m_{h}\choose n-1}}{{S-1\choose n-1}}
+$
+但是这题没模数，所以我们只能继续化简（摊手）。
+$
+\begin{aligned}
+\mathrm{ANS}
+&amp;=1-\frac{{S-m_{h}\choose n-1}}{{S-1\choose n-1}} \
+&amp;=1-\frac{\frac{(S-m_{h})!}{(n-1)!(S-m_{h}-n+1)!}}{\frac{(S-1)!}{(n-1)!(S-n)!}} \
+&amp;=1-\frac{\frac{(S-m_{h})!}{(n-1)!(S-m_{h}-n+1)!}\times(n-1)!(S-n)!}{(S-1)!} \
+&amp;=1-\frac{\frac{(S-m_{h})!}{(S-m_{h}-n+1)!}\times(S-n)!}{(S-1)!} \
+&amp;=1-\frac{\frac{(S-m_{h})!}{(S-n+2-m_{h}-1)!}\times(S-n)!}{(S-1)!} \
+&amp;=1-\frac{\frac{(S-n)!}{(S-n-(m_{h}-1))!}\times(S-m_{h})!}{(S-1)!} \
+&amp;=1-\frac{(\prod_{i=S-n-m_{h}+2}^{S-n}i)\times(S-1-(m_{h}-1))!}{(S-1)!} \
+&amp;=1-\frac{(\prod_{i=S-n-m_{h}+2}^{S-n}i)}{\prod_{i=S-m_{h}+1}^{S-1}i} \
+\end{aligned}
+$</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+const int MAXN = 1e3 + 5;
+
+int N, M, H, S;
+int nums[MAXN];
+
+int main( ){
+	scanf( &quot;%d%d%d&quot;, &amp;N, &amp;M, &amp;H );
+	for( int i = 1; i &lt;= M; ++ i ){ scanf( &quot;%d&quot;, &amp;nums[i] ); S += nums[i]; }
+	if( S &lt; N ){ puts( &quot;-1&quot; ); return 0; }
+	double Ans = 1;
+	for( int i = S - N - nums[H] + 2; i &lt;= S - N; ++ i )	Ans *= i;
+	for( int i = S - nums[H] + 1; i &lt;= S - 1; ++ i )	Ans /= i;
+	printf( &quot;%.10lf\n&quot;, 1 - Ans );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P4345 SHOI2015 超能粒子炮·改 - AC</h3>
+<p>$
+p=2333 \
+\begin{aligned}f(n,k)&amp;\equiv\sum_{i=0}^{k}{n\choose i} \
+&amp;\equiv\sum_{i=0}^{k}{\lfloor\frac{n}{p}\rfloor\choose\lfloor\frac{i}{p}\rfloor}\times{n\bmod p\choose i\bmod p} \
+&amp;\equiv\sum_{i=1}^{p-1}\left({n\bmod p\choose i}\times\sum_{j=0}^{k}{\lfloor\frac{n}{p}\rfloor\choose\lfloor\frac{i}{p}\rfloor}[j\bmod p=i]\right) \
+&amp;\equiv\sum_{i=1}^{p-1}\left({n\bmod p\choose i}\times\sum_{j=0}^{\lfloor\frac{k-i}{p}\rfloor}{\lfloor\frac{n}{p}\rfloor\choose i}\right) \
+&amp;\equiv\sum_{i=1}^{p-1}\left({n\bmod p\choose i}\times f(\lfloor\frac{n}{p}\rfloor,\lfloor\frac{k-i}{p}\rfloor)\right) \
+\end{aligned}
+\space(\operatorname{mod}p)
+$</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#define mod ( 2333 )
+
+typedef long long LL;
+
+const int MAXN = mod + 5;
+
+template&lt;typename _T&gt;
+void read( _T &amp;x ){
+	x = 0; char c = getchar( ); _T f = 1;
+	while( c &lt; &#39;0&#39; || c &gt; &#39;9&#39; ){ if( c == &#39;-&#39; )	f = -1; c = getchar( ); }
+	while( c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39; ){ x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 ); c = getchar( ); }
+	x *= f;
+}
+
+template&lt;typename _T&gt;
+void write( _T x ){
+	if( x &lt; 0 ){ putchar( &#39;-&#39; ); x = -x; }
+	if( x &gt; 9 )	write( x / 10 );
+	putchar( x % 10 + &#39;0&#39; );
+}
+
+template&lt;typename _T&gt; _T MIN( const _T x, const _T y ){ return x &gt; y ? y : x; }
+
+int N, K;
+int cB[MAXN][MAXN];
+
+void progressCbN( ){
+	for( int i = 0; i &lt; MAXN; ++ i )	cB[i][0] = 1;
+	for( int i = 1; i &lt; MAXN; ++ i ){
+		for( int j = 1; j &lt;= i; ++ j )	cB[i][j] = ( cB[i - 1][j] + cB[i - 1][j - 1] ) % mod;
+	}
+	for( int i = 1; i &lt; MAXN; ++ i ){
+		for( int j = 1; j &lt;= i; ++ j )	cB[i][j] = ( cB[i][j] + cB[i][j - 1] ) % mod;
+	}
+}
+
+int calc( int n, int k ){
+	if( n &lt; mod )	return cB[n][MIN( n, k )];
+	if( ! k )	return 1;
+	int emp = cB[n % mod][MIN( n % mod, k % mod )];
+	if( k - ( k % mod ) )	emp = ( emp + ( LL )( cB[n % mod][n % mod] - cB[n % mod][MIN( n % mod, k % mod )] + mod ) % mod * calc( n / mod, ( k - ( k % mod ) - 1 ) / mod ) % mod ) % mod;
+	return emp;
+}
+
+int main( ){
+	progressCbN( );
+	int TC; read( TC ); while( TC -- &gt; 0 ){ read( N ); read( K ); write( calc( N, K ) ); putchar( &#39;\n&#39; ); }
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>BZOJ4403 序列统计 - AC</h3>
+<p>$
+\begin{aligned}
+\mathrm{ANS}
+&amp;\equiv\sum_{i=1}^{n}{i+r-l\choose r-l} \
+&amp;\equiv{n+r-l+1\choose r-l+1}-1
+\end{aligned}
+\space(\operatorname{mod} p)
+$</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#define mod ( 1000003 )
+
+typedef long long LL;
+
+const int MAXN = mod + 5;
+
+template&lt;typename _T&gt;
+void read( _T &amp;x ){
+	x = 0; char c = getchar( ); _T f = 1;
+	while( c &lt; &#39;0&#39; || c &gt; &#39;9&#39; ){ if( c == &#39;-&#39; )	f = -1; c = getchar( ); }
+	while( c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39; ){ x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 ); c = getchar( ); }
+	x *= f;
+}
+
+template&lt;typename _T&gt;
+void write( _T x ){
+	if( x &lt; 0 ){ putchar( &#39;-&#39; ); x = -x; }
+	if( x &gt; 9 )	write( x / 10 );
+	putchar( x % 10 + &#39;0&#39; );
+}
+
+int N, L, R;
+int fac[MAXN], ifac[MAXN];
+
+void Exgcd( int a, int b, int &amp;x, int &amp;y ){ if( ! b ){ x = 1; y = 0; } else{ Exgcd( b, a % b, y, x ); y -= ( a / b ) * x; } }
+int Inv( int val ){ int res, was; Exgcd( val, mod, res, was ); return ( res + mod ) % mod; }
+int C( int n, int k ){ return n &lt; k ? 0 : ( LL )fac[n] * ifac[k] % mod * ifac[n - k] % mod; }
+int Lucas( int n, int k ){ return ! k ? 1 : ( LL )Lucas( n / mod, k / mod ) * C( n % mod, k % mod ) % mod; }
+void prepareNumber( int lim ){ fac[0] = ifac[0] = 1; for( int i = 1; i &lt;= lim; ++ i ){ fac[i] = ( LL )fac[i - 1] * i % mod; ifac[i] = Inv( fac[i] ); } }
+
+int main( ){
+	prepareNumber( MAXN - 5 );
+	int TC; read( TC ); while( TC -- &gt; 0 ){ read( N ); read( L ); read( R ); write( ( Lucas( N + R - L + 1, R - L + 1 ) - 1 + mod ) % mod ); putchar( &#39;\n&#39; ); }
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P2606 ZJOI2010 排列计数 - AC</h3>
+<p>是个堆，于是 $f_{i}=f_{2i}\times f_{2i+1}\times{S_{i}-1\choose S_{2i}}$。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+typedef long long LL;
+
+const int MAXN = 2e6 + 5;
+
+template&lt;typename _T&gt;
+void read( _T &amp;x ){
+	x = 0; char c = getchar( ); _T f = 1;
+	while( c &lt; &#39;0&#39; || c &gt; &#39;9&#39; ){ if( c == &#39;-&#39; )	f = -1; c = getchar( ); }
+	while( c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39; ){ x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 ); c = getchar( ); }
+	x *= f;
+}
+
+template&lt;typename _T&gt;
+void write( _T x ){
+	if( x &lt; 0 ){ putchar( &#39;-&#39; ); x = -x; }
+	if( x &gt; 9 )	write( x / 10 );
+	putchar( x % 10 + &#39;0&#39; );
+}
+
+int N, P;
+int fur[MAXN], fac[MAXN], ifac[MAXN];
+
+void Exgcd( int a, int b, int &amp;x, int &amp;y ){ if( ! b ){ x = 1; y = 0; } else{ Exgcd( b, a % b, y, x ); y -= ( a / b ) * x; } }
+int Inv( int val, int mod ){ int res, was; Exgcd( val, mod, res, was ); return ( res + mod ) % mod; }
+int C( int n, int k, int p ){ return n &lt; k ? 0 : ( LL )fac[n] * ifac[k] % p * ifac[n - k] % p; }
+int Lucas( int n, int k, int p ){ return ! k ? 1 : ( LL )Lucas( n / p, k / p, p ) * C( n % p, k % p, p ) % p; }
+void GetSize( int u ){ if( u &gt; N )	return; fur[u] = 1; GetSize( u &lt;&lt; 1 ); GetSize( u &lt;&lt; 1 | 1 ); fur[u] += fur[u &lt;&lt; 1] + fur[u &lt;&lt; 1 | 1]; }
+int GetAnsw( int u, int p ){ if( u &gt; N )	return 1; return ( LL )Lucas( fur[u] - 1, fur[u &lt;&lt; 1], p ) * GetAnsw( u &lt;&lt; 1, p ) % p * GetAnsw( u &lt;&lt; 1 | 1, p ) % p; }
+void PapNum( int n, int p ){ fac[0] = ifac[0] = 1; for( int i = 1; i &lt;= n; ++ i ){ fac[i] = ( LL )fac[i - 1] * i % p; ifac[i] = Inv( fac[i], p ); } }
+
+int main( ){
+	read( N ); read( P ); PapNum( MAXN - 5, P );
+	GetSize( 1 ); write( GetAnsw( 1, P ) );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P3773 CTSC2017 吉夫特 - AC</h3>
+<p>$
+\begin{aligned}
+&amp;\ \ \ \ \prod_{i=2}^{k}{a_{b_{i}-1}\choose a_{b_{i}}} \
+&amp;\equiv\prod_{i=2}^{k}{\lfloor\frac{a_{b_{i}-1}}{2}\rfloor\choose\lfloor\frac{a_{b_{i}}}{2}\rfloor}\times{a_{b_{i}-1}\bmod2\choose a_{b_{i}}\bmod2}
+\end{aligned}
+(\operatorname{mod} 2)
+$</p>
+<p>式子后面的 $\dbinom{a_{b_{i}-1}\bmod2}{a_{b_{i}\bmod2}}$ 一共有四种情况，其中只有 $\dbinom{0}{1}=0$。其他都为 $1$。</p>
+<p>意味着只要出现 $a_{b_{i}-1}\equiv0\bmod2$ 且 $a_{b_{i}}\equiv1\bmod1$ 的情况，整个式子就为零了。</p>
+<p>结论：$\dbinom{n}{m}\equiv0\space(\operatorname{mod}2)$ 当且仅当 $n\operatorname{bitand} =m$。</p>
+<p>证明（也许不是特别严谨）：我们可以知道：
+$
+{n\choose m}={\lfloor\frac{n}{2}\rfloor\choose\lfloor\frac{m}{2}\rfloor}\times{n\bmod 2\choose m\bmod2}={\lfloor\frac{\lfloor\frac{n}{2}\rfloor}{2}\rfloor\choose\lfloor\frac{\lfloor\frac{m}{2}\rfloor}{2}\rfloor}\times {\lfloor\frac{n}{2}\rfloor\bmod2\choose\lfloor\frac{m}{2}\rfloor\bmod2}\times{n\bmod 2\choose m\bmod2}=\cdots
+$
+我们发现：
+$
+{\lfloor\frac{\lfloor\frac{\lfloor\frac{n}{2}\rfloor}{2}\rfloor}{\cdots}\rfloor\choose\lfloor\frac{\lfloor\frac{\lfloor\frac{m}{2}\rfloor}{2}\rfloor}{\cdots}\rfloor}
+$
+这一坨，就是在一直进行二进制移位，$\operatorname{shr}1$。</p>
+<p>那么我们可以得出一个结论：如果对于我们记 $(n)<em>{k}$ 表示 $n$ 在二进制意义下的第 $k$ 位。$(n)</em>{k}\in[0,1]$</p>
+<p>那么对于 $\forall i$，有 $(n)<em>{i}=0$ 且 $(m)</em>{i}=1$，那么 $\dbinom{n}{m}\equiv0\space(\operatorname{mod} 2)$。</p>
+<p>所以 $n\operatorname{bitand}m=m$，证毕。</p>
+<p>我们题目要求的是最后算出来是个奇数，那么就不能存在 $a_{b_{i}-1}\operatorname{bitand}a_{b_{i}}=a_{b_{i}}$。</p>
+<p>也就是 $a_{b_{i}}$ 为 $a_{b_{i}-1}$ 的子集。</p>
+<p>接下来我们可以设计一个 DP，我们设 $f_{i}$ 为以 $a_{i}$ 为开头的答案。</p>
+<p>那么转移就是加法原理：
+$
+f_{i}=f_{i}+f_{j},j\in a_{i}\wedge t_{j}&gt;i
+$
+其中 $t_{i}$ 表示 $i$ 在序列中的位置。</p>
+<p>时间复杂度由二项式定理可知是 $\Theta(3^{\log_{2}\max{a_{i}}})$。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#define mod ( 1000000007 )
+
+const int MAXN = 250000 + 5;
+
+int N;
+int val[MAXN], dp[MAXN];
+int buc[MAXN];
+
+int main( ){
+	scanf( &quot;%d&quot;, &amp;N ); for( int i = 1; i &lt;= N; ++ i ){ scanf( &quot;%d&quot;, &amp;val[i] ); buc[val[i]] = i; }
+	int Ans = 0;
+	for( int i = N; i; -- i ){
+		dp[i] = 1;
+		for( int j = val[i] &amp; ( val[i] - 1 ); j; j = ( j - 1 ) &amp; val[i] ){
+			if( buc[j] &gt; i )	dp[i] = ( dp[i] + dp[buc[j]] ) % mod;
+		}
+		Ans = ( Ans + dp[i] ) % mod;
+	}
+	printf( &quot;%d\n&quot;, ( Ans - N + mod ) % mod );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>CF1151E Number of Components - IP</h3>
+<p>考虑转化对连通块的计数。连通块数量等于图中的所有点数减去点之间的边的数量。</p>
+<p>那么我们的基本思路就是分开统计点数和边数。</p>
+<p>先考虑点 $u$，它会产生贡献当且仅当 $a_{u}\in[l,r]$，而 $l\in[1,n],r\in[l,n]$，所以 $u$ 的贡献次数为 $a_{u}\times(n-a_{u}+1)$，画个数轴就行了。</p>
+<p>在考虑一条边 $(u,v)$，它会产生贡献当且仅当 $a_{u}\in[l,r]\wedge a_[v]\in[l,r]$，所以 $(u,v)$ 的贡献次数为 $\min{a_{u},a_{v}}\times(n-\max{a_{u},a_{v}}+1)$，注意这里的贡献是负的。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+typedef long long LL;
+
+const int MAXN = 1e5 + 5;
+
+template&lt;typename _T&gt; _T MIN( const _T x, const _T y ){ return x &gt; y ? y : x; }
+template&lt;typename _T&gt; _T MAX( const _T x, const _T y ){ return x &gt; y ? x : y; }
+
+int N;
+int a[MAXN];
+
+int main( ){
+	scanf( &quot;%d&quot;, &amp;N );
+	for( int i = 1; i &lt;= N; ++ i )	scanf( &quot;%d&quot;, &amp;a[i] );
+	LL Ans = 0;
+	for( int i = 1; i &lt;= N; ++ i )	Ans += ( LL )a[i] * ( N - a[i] + 1 );
+	for( int i = 1; i &lt; N; ++ i )	Ans -= ( LL )MIN( a[i], a[i + 1] ) * ( N - MAX( a[i], a[i + 1] ) + 1 );
+	printf( &quot;%lld\n&quot;, Ans );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>ACW214 Devu 和鲜花 - AC</h3>
+<p>先假设每个盒子可以无限取，每个盒子取 $x_{i}$ 个。</p>
+<p>则 $\sum_{i=1}^{N}x_{i}=M$。此时 $x_{i}\ge0$，不是特别好搞。</p>
+<p>那就 $\sum_{i=1}^{N}x_{i}+1=M+N$，然后隔个板，答案为 ${N+M-1\choose N-1}$。</p>
+<p>不合法的方案即不能存在 $x_{i}&gt;a_{i}$，然后容斥一下。</p>
+<p>这么煞笔弱智的代码调了一中午简直 CNM。两天不碰键盘就这样啊？</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#define mod ( 1000000007 )
+
+typedef long long LL;
+
+const LL MAXN = 20 + 5;
+
+LL N;
+LL M;
+LL a[MAXN];
+
+void Exgcd( LL a, LL b, LL &amp;x, LL &amp;y ){ if( ! b ){ x = 1; y = 0; } else{ Exgcd( b, a % b, y, x ); y -= ( a / b ) * x; } }
+LL Inv( LL val ){ LL res, was; Exgcd( val, mod, res, was ); return ( res + mod ) % mod; }
+
+LL C( LL n, LL k ){
+	if( n &lt; k )	return 0;
+	else if( n == k )	return 1;
+	n %= mod;
+	if( k &gt; n - k )	k = n - k;
+	LL one = 1, another = 1;
+	for( LL i = 0; i &lt; k; ++ i ){ one = one * ( n - i ) % mod; another = another * ( k - i ) % mod; }
+	return one * Inv( another ) % mod;
+}
+
+int main( ){
+	scanf( &quot;%lld%lld&quot;, &amp;N, &amp;M );
+	for( LL i = 1; i &lt;= N; ++ i )	scanf( &quot;%lld&quot;, &amp;a[i] );
+	LL Ans = C( N + M - 1, N - 1 ), Up = ( 1 &lt;&lt; N );
+	for( LL S = 1; S ^ Up; ++ S ){
+		LL pS = 1, tS = 0;
+		for( LL i = 1; i &lt;= N; ++ i ){
+			if( ( S &gt;&gt; ( i - 1 ) ) &amp; 1 ){ pS += a[i] + 1; tS ++; }
+		}
+		if( tS &amp; 1 )	Ans = ( Ans - C( N + M - pS, N - 1 ) + mod ) % mod;
+		else	Ans = ( Ans + C( N + M - pS, N - 1 ) ) % mod;
+	}
+	printf( &quot;%lld\n&quot;, Ans );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P2757 国家集训队 等差子序列 / P5679 GZOI2017 等差子序列 - AC</h3>
+<p>题面迷惑自己。</p>
+<p>首先 $Len=3$ 即可，后面就没意义了。</p>
+<p>感觉这种题和有较大可能与 $\texttt{bitset}$ 和 $\texttt{map}$ 有关系。</p>
+<p>答案即如果存在一个 $a_{i}$，需要满足 $a_{i}+k\in{A_{1},\cdots,A_{n}},a_{i}-k\in{A_{1},\cdots,A_{n}}$，那么输出 $\texttt{Y}$，否则输出 $\texttt{N}$。</p>
+<p>然后把所有 $A_{i}$ 映射在一个桶里，就变成了一个判断区间回文的问题了哦。</p>
+<p>然后你要 $\texttt{bitset}$ 也行，不过数据范围大点就过不去了，反正我打线段树。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#define LL long long
+
+const unsigned LL KEY = 131;
+const int MAXN = 1e4 + 5;
+
+template&lt;typename _T&gt;
+void read( _T &amp;x ){
+	x = 0; char c = getchar( ); _T f = 1;
+	while( c &lt; &#39;0&#39; || c &gt; &#39;9&#39; ){ if( c == &#39;-&#39; )	f = -1; c = getchar( ); }
+	while( c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39; ){ x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 ); c = getchar( ); }
+	x *= f;
+}
+
+template&lt;typename _T&gt;
+void write( _T x ){
+	if( x &lt; 0 ){ putchar( &#39;-&#39; ); x = -x; }
+	if( x &gt; 9 )	write( x / 10 );
+	putchar( x % 10 + &#39;0&#39; );
+}
+
+template&lt;typename _T&gt; _T MIN( const _T x, const _T y ){ return x &gt; y ? y : x; }
+
+struct nodeS{
+	unsigned LL has;
+	int fur;
+	nodeS( unsigned LL H = 0, int F = 0 ){ has = H; fur = F; }
+	bool operator != ( const nodeS another ){ return has != another.has; }
+} nodeL[MAXN * 4], nodeR[MAXN * 4];
+
+int N;
+int a[MAXN];
+unsigned LL bas[MAXN];
+
+nodeS Merge( const nodeS lch, const nodeS rch ){ return nodeS( lch.has * bas[rch.fur] + rch.has, lch.fur + rch.fur ); }
+void Upt( const int x ){ nodeL[x] = Merge( nodeL[x &lt;&lt; 1], nodeL[x &lt;&lt; 1 | 1] ); nodeR[x] = Merge( nodeR[x &lt;&lt; 1 | 1], nodeR[x &lt;&lt; 1] ); }
+
+void Build( const int x, const int l, const int r ){
+	if( l == r ){ nodeL[x] = nodeR[x] = nodeS( 0, 1 ); return; }
+	int mid = ( l + r ) &gt;&gt; 1;
+	Build( x &lt;&lt; 1, l, mid );
+	Build( x &lt;&lt; 1 | 1, mid + 1, r );
+	Upt( x );
+}
+
+void Modify( const int x, const int l, const int r, const int segP, const int segW ){
+	if( l == r ){ nodeL[x] = nodeR[x] = nodeS( segW, segW ); return; }
+	int mid = ( l + r ) &gt;&gt; 1;
+	if( mid &gt;= segP )	Modify( x &lt;&lt; 1, l, mid, segP, segW );
+	else	Modify( x &lt;&lt; 1 | 1, mid + 1, r, segP, segW );
+	Upt( x );
+}
+
+nodeS QueryL( const int x, const int l, const int r, const int segL, const int segR ){
+	if( l &gt; segR || r &lt; segL )	return nodeS( 0, 0 );
+	if( l &gt;= segL &amp;&amp; r &lt;= segR )	return nodeL[x];
+	int mid = ( l + r ) &gt;&gt; 1;
+	return Merge( QueryL( x &lt;&lt; 1, l, mid, segL, segR ), QueryL( x &lt;&lt; 1 | 1, mid + 1, r, segL, segR ) );
+}
+
+nodeS QueryR( const int x, const int l, const int r, const int segL, const int segR ){
+	if( l &gt; segR || r &lt; segL )	return nodeS( 0, 0 );
+	if( l &gt;= segL &amp;&amp; r &lt;= segR )	return nodeR[x];
+	int mid = ( l + r ) &gt;&gt; 1;
+	return Merge( QueryR( x &lt;&lt; 1 | 1, mid + 1, r, segL, segR ), QueryR( x &lt;&lt; 1, l, mid, segL, segR ) );
+}
+
+int main( ){
+	bas[0] = 1; for( int i = 1; i &lt; MAXN; ++ i )	bas[i] = bas[i - 1] * KEY;
+	int TC; read( TC ); while( TC -- &gt; 0 ){
+		read( N ); for( int i = 1; i &lt;= N; ++ i )	read( a[i] );
+		bool Ans = 0; Build( 1, 1, N );
+		for( int i = 1; i &lt;= N; ++ i ){
+			Modify( 1, 1, N, a[i], 1 );
+			int aimS = MIN( a[i] - 1, N - a[i] );
+			if( aimS &lt;= 0 )	continue;
+			if( QueryL( 1, 1, N, a[i] - aimS, a[i] - 1 ) != QueryR( 1, 1, N, a[i] + 1, a[i] + aimS ) ){ Ans = 1; puts( &quot;Y&quot; ); break; }
+		}
+		if( ! Ans )	puts( &quot;N&quot; );
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P4870 BalticOI 2009 Day1 甲虫 - AC</h3>
+<p>定义 $f_{i,j,0/1}$ 表示个寂寞。
+$
+f_{i,i,0/1}=|a_{i}|\times I
+$</p>
+<p>$
+f_{i,j,0}=\min{f_{i+1,j,0}+(a_{i+1}-a_{i})\times(I-j+i),f_{i+1,j,1}+(a_{j}-a_{i})\times(I-j+i)} \f_{i,j,1}=\min{f_{i,j-1,1}+(a_{j}-a_{j-1})\times(I-j+i),f_{i,j-1,0}+(a_{j}-a_{i})\times(I-j+i)}
+$</p>
+<p>$
+\mathrm{ANS}=\max{i\times m-\min{f_{l,r,0/1}}}
+$</p>
+<details>
+
+<pre><code class="language-cpp">/* Splovex-MD */
+
+#include &lt;cstdio&gt;
+#include &lt;algorithm&gt;
+
+using namespace std;
+typedef long long LL;
+
+const int MAXN = 300 + 5;
+
+template&lt;typename _T&gt;
+void read( _T &amp;x ){
+	x = 0; char c = getchar( ); _T f = 1;
+	while( c &lt; &#39;0&#39; || c &gt; &#39;9&#39; ){ if( c == &#39;-&#39; )	f = -1; c = getchar( ); }
+	while( c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39; ){ x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 ); c = getchar( ); }
+	x *= f;
+}
+
+template&lt;typename _T&gt;
+void write( _T x ){
+	if( x &lt; 0 ){ putchar( &#39;-&#39; ); x = -x; }
+	if( x &gt; 9 )	write( x / 10 );
+	putchar( x % 10 + &#39;0&#39; );
+}
+
+template&lt;typename _T&gt; _T MIN( const _T x, const _T y ){ return x &gt; y ? y : x; }
+template&lt;typename _T&gt; _T MAX( const _T x, const _T y ){ return x &gt; y ? x : y; }
+template&lt;typename _T&gt; _T ABS( const _T x ){ return x &gt; 0 ? x : -x; }
+
+int N, M;
+int wtS[MAXN];
+LL f[MAXN][MAXN][2];
+
+int main( ){
+	// freopen( &quot;beetle.in&quot;, &quot;r&quot;, stdin );
+	// freopen( &quot;beetle.out&quot;, &quot;w&quot;, stdout );
+	read( N ); read( M );
+	for( int i = 1; i &lt;= N; ++ i )	read( wtS[i] );
+	sort( wtS + 1, wtS + 1 + N );
+	LL Ans = 0;
+	for( int i = 1; i &lt;= N; ++ i ){
+		for( int j = 1; j &lt;= N; ++ j )	f[j][j][0] = f[j][j][1] = ABS( wtS[j] ) * i;
+		for( int dis = 2; dis &lt;= N; ++ dis ){
+			for( int l = 1, r = dis; r &lt;= N; ++ l, ++ r ){
+				f[l][r][0] = MIN( f[l + 1][r][0] + ( wtS[l + 1] - wtS[l] ) * ( i - r + l ), f[l + 1][r][1] + ( wtS[r] - wtS[l] ) * ( i - r + l ) );
+				f[l][r][1] = MIN( f[l][r - 1][1] + ( wtS[r] - wtS[r - 1] ) * ( i - r + l ), f[l][r - 1][0] + ( wtS[r] - wtS[l] ) * ( i - r + l ) );
+			}
+		}
+		for( int l = 1; l &lt;= N - i + 1; ++ l ){
+			int r = l + i - 1;
+			Ans = MAX( Ans, i * M - MIN( f[l][r][0], f[l][r][1] ) );
+		}
+	}
+	write( Ans );
+	return 0;
+}
+</code></pre>
+</details>
+
+
+<h3>P4786 BalkanOI 2018 Election - AC</h3>
+<p>转化一下成最大子段和，化式子过程懒得写了。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+typedef long long LL;
+
+const LL INF = 0x3f3f3f3f;
+const int MAXN = 5e5 + 5;
+
+template&lt;typename _T&gt;
+void read( _T &amp;x ){
+	x = 0; char c = getchar( ); _T f = 1;
+	while( c &lt; &#39;0&#39; || c &gt; &#39;9&#39; ){ if( c == &#39;-&#39; )	f = -1; c = getchar( ); }
+	while( c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39; ){ x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 ); c = getchar( ); }
+	x *= f;
+}
+
+template&lt;typename _T&gt;
+void write( _T x ){
+	if( x &lt; 0 ){ putchar( &#39;-&#39; ); x = -x; }
+	if( x &gt; 9 )	write( x / 10 );
+	putchar( x % 10 + &#39;0&#39; );
+}
+
+template&lt;typename _T&gt; _T MIN( const _T x, const _T y ){ return x &gt; y ? y : x; }
+
+struct nodeS{
+	LL val, pre, suf;
+	nodeS( LL V = 0, LL P = 0, LL S = 0 ){ val = V; pre = P; suf = S; }
+} nodes[MAXN * 4];
+
+int N, M;
+int a[MAXN], pre[MAXN], suf[MAXN];
+char str[MAXN];
+
+nodeS Merge( const nodeS lch, const nodeS rch ){ return nodeS( MIN( lch.pre + rch.suf, MIN( lch.val, rch.val ) ),
+		MIN( lch.pre, rch.pre ), MIN( lch.suf, rch.suf ) ); }
+void Upt( const int x ){ nodes[x] = Merge( nodes[x &lt;&lt; 1], nodes[x &lt;&lt; 1 | 1] ); }
+
+void Build( const int x, const int l, const int r ){
+	if( l == r ){ nodes[x] = nodeS( INF, pre[l], suf[l] ); return; }
+	int mid = ( l + r ) &gt;&gt; 1;
+	Build( x &lt;&lt; 1, l, mid );
+	Build( x &lt;&lt; 1 | 1, mid + 1, r );
+	Upt( x );
+}
+
+nodeS Query( const int x, const int l, const int r, const int segL, const int segR ){
+	if( l &gt; segR || r &lt; segL )	return nodeS( INF, INF, INF );
+	if( l &gt;= segL &amp;&amp; r &lt;= segR )	return nodes[x];
+	int mid = ( l + r ) &gt;&gt; 1;
+	return Merge( Query( x &lt;&lt; 1, l, mid, segL, segR ), Query( x &lt;&lt; 1 | 1, mid + 1, r, segL, segR ) );
+}
+
+int main( ){
+	read( N ); scanf( &quot;%s&quot;, str + 1 );
+	for( int i = 1; i &lt;= N; ++ i ){
+		if( str[i] == &#39;C&#39; )	a[i] = 1;
+		else	a[i] = -1;
+	}
+	for( int i = 1; i &lt;= N; ++ i )	pre[i] = pre[i - 1] + a[i];
+	for( int i = N; i; -- i )	suf[i] = suf[i + 1] + a[i];
+	Build( 1, 0, N + 1 );
+	read( M ); while( M -- &gt; 0 ){
+		int opl, opr;
+		read( opl ); read( opr );
+		LL ret = Query( 1, 0, N + 1, opl - 1, opr + 1 ).val;
+		write( pre[opl - 1] + suf[opr + 1] - ret ), putchar( &#39;\n&#39; );
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>CF1451E1 Bitwise Queries (Easy Version) - AC</h3>
+<p>结论：
+$
+a+b=(a\operatorname{bitxor}b)+((a\operatorname{bitand}b)\operatorname{shl}1)
+$
+证明比较显然。</p>
+<p>然后就 $5$ 次询问出前面三个数，又询问 $n-3$ 次出后面的数。</p>
+<details>
+
+<pre><code class="language-cpp">/*
+theorem: a+b=(a^b)+((a&amp;b)&lt;&lt;1)
+ask:
+a1 xor a2
+a1 and a2
+a1 xor a3
+a1 and a3
+a2 and a3
+=&gt;
+a1+a2
+a1+a3
+(a1 xor a2) xor (a1 xor a3)=a2 xor a3
+=&gt;
+a1+a2=A [1]
+a1+a3=B [2]
+a2+a3=C [3]
+=&gt;
+a1=(A+B-C)/2
+a2=(A-B+C)/2
+a3=(B+C-A)/2
+*/
+
+#include &lt;cstdio&gt;
+
+const int MAXN = ( 1 &lt;&lt; 16 ) + 5;
+
+int N;
+int Ans[MAXN];
+
+int main () {
+	scanf ( &quot;%d&quot;, &amp;N );
+	int a1xora2, a1anda2, a1xora3, a1anda3, a2xora3, a2anda3;
+	printf ( &quot;XOR 1 2\n&quot; ), fflush ( stdout ), scanf ( &quot;%d&quot;, &amp;a1xora2 );
+	printf ( &quot;AND 1 2\n&quot; ), fflush ( stdout ), scanf ( &quot;%d&quot;, &amp;a1anda2 );
+	printf ( &quot;XOR 1 3\n&quot; ), fflush ( stdout ), scanf ( &quot;%d&quot;, &amp;a1xora3 );
+	printf ( &quot;AND 1 3\n&quot; ), fflush ( stdout ), scanf ( &quot;%d&quot;, &amp;a1anda3 );
+	printf ( &quot;AND 2 3\n&quot; ), fflush ( stdout ), scanf ( &quot;%d&quot;, &amp;a2anda3 );
+	a2xora3 = a1xora2 ^ a1xora3;
+	int A = a1xora2 + ( a1anda2 &lt;&lt; 1 );
+	int B = a1xora3 + ( a1anda3 &lt;&lt; 1 );
+	int C = a2xora3 + ( a2anda3 &lt;&lt; 1 );
+	Ans[1] = ( A + B - C ) / 2;
+	Ans[2] = ( A - B + C ) / 2;
+	Ans[3] = ( B + C - A ) / 2;
+	for ( int i = 4; i &lt;= N; ++ i ) {
+		printf ( &quot;XOR 1 %d\n&quot;, i );
+		fflush ( stdout );
+		int xorval;
+		scanf ( &quot;%d&quot;, &amp;xorval );
+		Ans[i] = xorval ^ Ans[1];
+	}
+	putchar ( &#39;!&#39; );
+	for ( int i = 1; i &lt;= N; ++ i )	printf ( &quot; %d&quot;, Ans[i] );
+	putchar ( &#39;\n&#39; );
+	fflush ( stdout );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>CF1451E2 Bitwise Queries (Hard Version) - IP</h3>
+<p>Key：值域 $[0,n-1]$。</p>
+<p>钦定一个数 $K\in{a_{1},\cdots,a_{n}}$，这里为了方便取 $K=a_{1}$。</p>
+<p>然后计算出 $a&#39;<em>{i}=K\operatorname{bitxor}a</em>{i},i\in[2,n]$。</p>
+<h3>SP106 BINSTIRL - Binary Stirling Numbers - AC</h3>
+<p>求
+$
+\begin{aligned}
+\begin{Bmatrix}n \ m\end{Bmatrix}\bmod2
+&amp;=\left(\begin{Bmatrix}n-1 \ m-1\end{Bmatrix}+m\begin{Bmatrix}n-1 \ m\end{Bmatrix}\right)\bmod2 \
+&amp;=\begin{cases}
+\begin{Bmatrix}n-1 \ m-1\end{Bmatrix}\bmod2,m\equiv0\space(\operatorname{mod}2) \
+\left(\begin{Bmatrix}n-1 \ m-1\end{Bmatrix}+\begin{Bmatrix}n-1 \ m\end{Bmatrix}\right)\bmod2,m\equiv1\space(\operatorname{mod}2)
+\end{cases}
+\end{aligned}
+$
+$m\equiv1\space(\operatorname{mod}2)$ 的情况为组合数的递推。</p>
+<p>转化一下，把填表转移换成刷表，即</p>
+<ul>
+<li><p>当 $m\equiv0\space(\operatorname{mod}2)$ 时，$\begin{Bmatrix}n \ m\end{Bmatrix}$ 转移到 $\begin{Bmatrix}n+1 \ m+1\end{Bmatrix}$。</p>
+</li>
+<li><p>当 $m\equiv1\space(\operatorname{mod}2)$ 时，$\begin{Bmatrix}n \ m\end{Bmatrix}$ 转移到 $\begin{Bmatrix}n+1 \ m+1\end{Bmatrix}$ 和 $\begin{Bmatrix}n+1 \ m\end{Bmatrix}$。</p>
+</li>
+</ul>
+<p>那么这个题目就转化成了在表格上 $(0,0)$ 走到 $(n,m)$ 的路径条数 $\operatorname{mod}2$ 问题。</p>
+<p>两种情况都可以转移到 $\begin{Bmatrix}n+1 \ m+1\end{Bmatrix}$，为了方便起见，我们定义这种情况为向右上转移，把 $\begin{Bmatrix}n+1 \ m\end{Bmatrix}$ 定义为向上转移。</p>
+<p>因为我们转移只能向上或右上走，所以只会走 $n$ 步，其中 $m$ 次向右上转移，$n-m$ 次向右转移。</p>
+<p>我们一共有 $\lfloor\frac{m+1}{2}\rfloor$ 次机会向右转移（只能从奇数走）。</p>
+<p>相当于我们现在需要把转移的过程分成 $n-m$ 段，每一段的内部全部都是向右上转移，这样我们才能到达 $(n,m)$。</p>
+<p>用盒子与球的语言来描述，就是一共就有 $n-m+\lfloor\frac{m+1}{2}\rfloor$ 个球（这里理解起来其实特别麻烦）（不过只是对于我这种组合差的人），分成 $\lfloor\frac{m+1}{2}\rfloor$ 段，隔板即可。</p>
+<p>于是 $\begin{Bmatrix}n \ m\end{Bmatrix}\bmod2={n-m+\lfloor\frac{m+1}{2}\rfloor-1\choose\lfloor\frac{m+1}{2}\rfloor-1}\bmod2$。</p>
+<p>关于组合数奇偶性，<a href="https://www.luogu.com.cn/blog/161849/solution-p3773">我这篇博客里写过</a>，再贴上来：</p>
+<p>结论：$\dbinom{n}{m}\equiv0\space(\operatorname{mod}2)$ 当且仅当 $n\operatorname{bitand}m=m$。</p>
+<p>证明（也许不是特别严谨）：我们可以知道：
+$
+{n\choose m}={\lfloor\frac{n}{2}\rfloor\choose\lfloor\frac{m}{2}\rfloor}\times{n\bmod 2\choose m\bmod2}={\lfloor\frac{\lfloor\frac{n}{2}\rfloor}{2}\rfloor\choose\lfloor\frac{\lfloor\frac{m}{2}\rfloor}{2}\rfloor}\times {\lfloor\frac{n}{2}\rfloor\bmod2\choose\lfloor\frac{m}{2}\rfloor\bmod2}\times{n\bmod 2\choose m\bmod2}=\cdots
+$
+我们发现：
+$
+{\lfloor\frac{\lfloor\frac{\lfloor\frac{n}{2}\rfloor}{2}\rfloor}{\cdots}\rfloor\choose\lfloor\frac{\lfloor\frac{\lfloor\frac{m}{2}\rfloor}{2}\rfloor}{\cdots}\rfloor}
+$
+这一坨，就是在一直进行二进制移位，$\operatorname{shr}1$。</p>
+<p>那么我们可以得出一个结论：如果对于我们记 $(n)<em>{k}$ 表示 $n$ 在二进制意义下的第 $k$ 位。$(n)</em>{k}\in[0,1]$</p>
+<p>那么对于 $\forall i$，有 $(n)<em>{i}=0$ 且 $(m)</em>{i}=1$，那么 $\dbinom{n}{m}\equiv0\space(\operatorname{mod} 2)$。</p>
+<p>所以 $n\operatorname{bitand}m=m$，证毕。</p>
+<p>答案显然。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+int N, M;
+
+int main () {
+	int TC; scanf ( &quot;%d&quot;, &amp;TC ); while ( TC -- &gt; 0 ) {
+		scanf ( &quot;%d%d&quot;, &amp;N, &amp;M );
+		if ( ! N &amp;&amp; ! M )	puts ( &quot;1&quot; );
+		else if ( ! N || ! M || N &lt; M )	puts ( &quot;0&quot; );
+		else if( ( ( N - M + ( ( M + 1 ) &gt;&gt; 1 ) - 1 ) &amp; ( ( ( M + 1 ) &gt;&gt; 1 ) - 1 ) ) == ( ( ( M + 1 ) &gt;&gt; 1 ) - 1 ) )	puts ( &quot;1&quot; );
+		else	puts ( &quot;0&quot; );
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>CF258D Little Elephant and Broken Sorting - AC</h3>
+<p>要啥设啥惯性设计状态不好。</p>
+<p>设 $f_{i,j}=P(a_{i}&gt;a_{j}),i&lt;j$。</p>
+<p>我们假设当前我们的操作为交换 $a_{x},a_{y}$。</p>
+<p>那么 $f_{i,x}=f_{i,y}$，也有 $f_{i,x}=f_{i,y}=1-f_{x,i}=1-f_{y,i}$。</p>
+<p>转移比较神奇
+$
+\begin{cases}
+f_{i,x}=\frac{f_{i,x}+f_{i,y}}{2} \
+f_{i,y}=\frac{f_{i,x}+f_{i,y}}{2} \
+\end{cases}
+$
+答案即
+$
+\sum_{i=1}^{n}\sum_{j=i+1}^{n}f_{i,j}
+$
+边界条件
+$
+f_{i,j}=[a_{i}&gt;a_{j}],i&lt;j
+$
+这题的状态设计也给我提了个醒，不要惯性做题。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+const int MAXN = 1000 + 5;
+
+int N, M;
+int a[MAXN];
+double f[MAXN][MAXN];
+
+int main () {
+	scanf ( &quot;%d%d&quot;, &amp;N, &amp;M );
+	for ( int i = 1; i &lt;= N; ++ i )	scanf ( &quot;%d&quot;, &amp;a[i] );
+	for ( int i = 1; i &lt;= N; ++ i ) {
+		for ( int j = 1; j &lt;= N; ++ j ) {
+			if ( a[i] &gt; a[j] )	f[i][j] = 1;
+			else	f[i][j] = 0;
+		}
+	}
+	while ( M -- &gt; 0 ) {
+		int x, y;
+		scanf ( &quot;%d%d&quot;, &amp;x, &amp;y );
+		for ( int i = 1; i &lt;= N; ++ i ) {
+			f[i][x] = f[i][y] = ( f[i][x] + f[i][y] ) / 2;
+			f[x][i] = f[y][i] = 1 - f[i][x];
+		}
+		f[x][y] = f[y][x] = 0.5;
+	}
+	double Ans = 0;
+	for ( int i = 1; i &lt;= N; ++ i ) {
+		for ( int j = i + 1; j &lt;= N; ++ j )	Ans += f[i][j];
+	}
+	printf ( &quot;%.6lf\n&quot;, Ans );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>AT4513 [AGC030D] Inversion Sum - AC</h3>
+<p>同 CF258D，乘个 $2^{q}$ 即可。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#define mod ( 1000000007 )
+
+typedef long long LL;
+
+const int MAXN = 3000 + 5;
+
+int N, M;
+int a[MAXN];
+LL f[MAXN][MAXN];
+
+template&lt;typename _T&gt; _T ADD ( const _T x, const _T y ) { return ( x + y &lt; mod ) ? ( x + y ) : ( x + y - mod ); }
+template&lt;typename _T&gt; _T MUL ( const _T x, const _T y ) { return ( LL )x * y % mod; }
+
+int main () {
+	scanf ( &quot;%d%d&quot;, &amp;N, &amp;M );
+	for ( int i = 1; i &lt;= N; ++ i )	scanf ( &quot;%d&quot;, &amp;a[i] );
+	for ( int i = 1; i &lt;= N; ++ i ) {
+		for ( int j = 1; j &lt;= N; ++ j )	{
+			if ( a[i] &gt; a[j] )	f[i][j] = 1;
+			else	f[i][j] = 0;
+		}
+	}
+	LL K = ( mod + 1 ) &gt;&gt; 1;
+	for ( int _ = 1; _ &lt;= M; ++ _ ) {
+		int x, y;
+		scanf ( &quot;%d%d&quot;, &amp;x, &amp;y );
+		for ( int i = 1; i &lt;= N; ++ i ) {
+			if( i == x || i == y )	continue;
+			f[i][x] = f[i][y] = MUL ( ADD ( f[i][x], f[i][y] ), K );
+			f[x][i] = f[y][i] = MUL ( ADD ( f[x][i], f[y][i] ), K );
+		}
+		f[x][y] = f[y][x] = MUL ( ADD ( f[x][y], f[y][x] ), K );
+	}
+	LL Ans = 0;
+	for ( int i = 1; i &lt;= N; ++ i ) {
+		for ( int j = i + 1; j &lt;= N; ++ j )	Ans = ADD ( Ans, f[i][j] );
+	}
+	for ( int _ = 1; _ &lt;= M; ++ _ )	Ans = ADD ( Ans, Ans );
+	printf ( &quot;%lld\n&quot;, Ans );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>LOC25875 小 Y 的图 - AC</h3>
+<p><a href="https://www.luogu.com.cn/paste/idm2yb0i">Desc. &amp; Link.</a></p>
+<p>水题</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#include &lt;algorithm&gt;
+
+using namespace std;
+
+const int MAXN = 3e5 + 5;
+
+template&lt;typename _T&gt;
+void read( _T &amp;x ){
+	x = 0; char c = getchar( ); _T f = 1;
+	while( c &lt; &#39;0&#39; || c &gt; &#39;9&#39; ){ if( c == &#39;-&#39; )	f = -1; c = getchar( ); }
+	while( c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39; ){ x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 ); c = getchar( ); }
+	x *= f;
+}
+
+template&lt;typename _T&gt;
+void write( _T x ){
+	if( x &lt; 0 ){ putchar( &#39;-&#39; ); x = -x; }
+	if( x &gt; 9 )	write( x / 10 );
+	putchar( x % 10 + &#39;0&#39; );
+}
+
+template&lt;typename _T&gt; _T MAX( const _T x, const _T y ){ return x &gt; y ? x : y; }
+template&lt;typename _T&gt; void swapp( _T &amp;x, _T &amp;y ){ _T w = x; x = y; y = w; }
+
+struct starS{
+	int to, nx, wt;
+	starS( int T = 0, int N = 0, int W = 0 ){ to = T; nx = N; wt = W; }
+} as[MAXN * 2];
+
+struct edgeS{
+	int u, v, w;
+	edgeS( int U = 0, int V = 0, int W = 0 ){ u = U; v = V; w = W; }
+	bool operator &lt; ( const edgeS &amp;another ){ return w &lt; another.w; }
+} tur[MAXN];
+
+int N, M, Q;
+int cnt, col;
+int firS[MAXN], fa[MAXN][21], fur[MAXN][21], ufs[MAXN], vis[MAXN], dep[MAXN];
+
+void pushEdge( const int u, const int v, const int w ){ as[++ cnt] = starS( v, firS[u], w ); firS[u] = cnt; }
+void makeSet( const int w ){ for( int i = 1; i &lt;= w; ++ i )	ufs[i] = i; }
+int findSet( const int u ){ return u != ufs[u] ? ufs[u] = findSet( ufs[u] ) : ufs[u]; }
+bool unionSet( int u, int v ){
+	u = findSet( u ); v = findSet( v );
+	if( u != v ){ ufs[u] = v; return 1; }
+	else	return 0;
+}
+
+void Spannin( ){
+	makeSet( N ); sort( tur + 1, tur + 1 + M );
+	for( int i = 1; i &lt;= M; ++ i ){
+		int u = tur[i].u, v = tur[i].v, w = tur[i].w;
+		if( ! unionSet( u, v ) )	continue;
+		pushEdge( u, v, w ); pushEdge( v, u, w );
+	}
+}
+
+void DFS( const int u, const int lst, const int col ){
+	vis[u] = col; fa[u][0] = lst; dep[u] = dep[lst] + 1;
+	for( int i = 1; i ^ 21; ++ i ){
+		fa[u][i] = fa[fa[u][i - 1]][i - 1];
+		fur[u][i] = MAX( fur[u][i - 1], fur[fa[u][i - 1]][i - 1] );
+	}
+	for( int i = firS[u]; i; i = as[i].nx ){
+		int v = as[i].to, w = as[i].wt;
+		if( v == lst )	continue;
+		fur[v][0] = w; DFS( v, u, col );
+	}
+}
+
+int Query( int u, int v ){
+	if( dep[u] &lt; dep[v] )	swapp( u, v );
+	int res = 0;
+	for( int i = 20; ~ i; -- i ){
+		if( dep[fa[u][i]] &gt;= dep[v] ){ res = MAX( res, fur[u][i] ); u = fa[u][i]; }
+	}
+	if( u == v )	return res;
+	for( int i = 20; ~ i; -- i ){
+		if( fa[u][i] == fa[v][i] )	continue;
+		res = MAX( res, MAX( fur[u][i], fur[v][i] ) );
+		u = fa[u][i]; v = fa[v][i];
+	}
+	res = MAX( res, MAX( fur[u][0], fur[v][0] ) );
+	return res;
+}
+
+int main( ){
+	read( N ); read( M ); read( Q );
+	for( int i = 1, u, v, w; i &lt;= M; ++ i ){
+		read( u ); read( v ); read( w );
+		tur[i] = edgeS( u, v, w );
+	}
+	Spannin( );
+	for( int i = 1; i &lt;= N; ++ i ){
+		if( ! vis[i] )	DFS( i, 0, ++ col );
+	}
+	while( Q -- &gt; 0 ){
+		int u, v;
+		read( u ); read( v );
+		if( vis[u] != vis[v] )	write( -1 ), putchar( &#39;\n&#39; );
+		else	write( Query( u, v ) ), putchar( &#39;\n&#39; );
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>LOC25874 小 W 的魔术 - AC</h3>
+<p><a href="https://www.luogu.com.cn/paste/dwkm1jcb">Desc. &amp; Link.</a></p>
+<p>$26^{n}-26^{n-|s|}-|s|\times25\times26^{n-|s|-1}$</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#define mod ( 998244353 )
+
+typedef long long LL;
+
+LL Qkpow ( LL base, LL indx ) {
+	LL res = 1;
+	while ( indx ) {
+		if ( indx &amp; 1 )	res = res * base % mod;
+		base = base * base % mod;
+		indx &gt;&gt;= 1;
+	}
+	return res;
+}
+
+LL N, S;
+
+int main () {
+	scanf ( &quot;%lld\n&quot;, &amp;N );
+	char c = getchar ();
+	for ( ; c != &#39;\r&#39; &amp;&amp; c != &#39;\n&#39; &amp;&amp; ~ c; c = getchar () )	S ++;
+	if ( N == S )	printf ( &quot;%lld\n&quot;, ( Qkpow ( 26, S ) - 1 + mod ) % mod );
+	else if ( N &lt; S )	printf ( &quot;0\n&quot; );
+	else printf ( &quot;%lld\n&quot;, ( ( Qkpow ( 26, N ) - Qkpow ( 26, N - S ) - S * 25 % mod * Qkpow ( 26, N - S - 1 ) % mod ) % mod + mod ) % mod );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P6287 [COCI2016-2017#1] Mag - IP</h3>
+<p>结论：答案链上最多包含一个 $2$（其余全为 $1$），并且不在链的两端点。</p>
+<p>证明：我们问题分成两个 $\texttt{pass}$。</p>
+<ul>
+<li>$\texttt{pass 1}$：$\forall u,s.t.x_{u}\ge2$。</li>
+</ul>
+<p>答案显然为 $\min{x_{u}},u\in V$。</p>
+<ul>
+<li><p>$\texttt{pass 2}$：$\exists E&#39;\subset E,s.t.x_{u}=1,u\in E&#39;\wedge x_{v}\ge2,v\in E\setminus E&#39;$。</p>
+</li>
+<li><ul>
+<li>我们设我们选出的链为大概这样的造型：</li>
+</ul>
+</li>
+</ul>
+<p>$
+1\rightarrow1\rightarrow\cdots\rightarrow X\rightarrow1\rightarrow1\cdots
+$</p>
+<p>即一堆 $1$ 中夹了一个 $X$。</p>
+<p>我们设 $X$ 左边有 $l$ 个节点，右边有 $r$ 个节点。</p>
+<p>则价值为整条链 $\frac{X}{l+r+1}$，左边 $\frac{1}{l}$，右边 $\frac{1}{r}$。</p>
+<p>为方便我们这里设 $l&lt;r$。</p>
+<p>那么左边的价值一定大于右边。</p>
+<p>这里假设 $\frac{1}{r}&gt;\frac{X}{l+r+1}$，则有 $X&lt;\frac{l+1}{r}+1$，又 $r\ge l+1$，所以 $\frac{l+1}{r}\le1$。（反之可以证伪，懒得写了 QwQ）</p>
+<p>所以有 $X\le2$。</p>
+<p>又 $X\neq1$，所以 $X=2$。</p>
+<ul>
+<li><ul>
+<li>我们设我们选出的链为大概这样的造型：</li>
+</ul>
+</li>
+</ul>
+<p>$
+1\rightarrow1\rightarrow\cdots\rightarrow X\rightarrow1\rightarrow\cdots\rightarrow1\rightarrow Y\rightarrow1\cdots
+$</p>
+<p>即一堆 $1$ 中夹了一个 $X$ 一个 $Y$。</p>
+<p>这里我们可以把 $Y$ 以前当成 $\texttt{pass 2}$ 的第一个类型，设其共有 $N$ 个数。</p>
+<p>那么假设我们加入 $Y$ 更优，即有 $\frac{XY}{N+1}&lt;\frac{X}{N}$，则有 $NY&lt;N+1$，由于 $Y\neq1$，所以加入 $Y$ 是更劣的。</p>
+<p>后面的同理就可以推广了。</p>
+<p>于是得证 QwQ。</p>
+<p>然后我们就可以 DP 了。</p>
+<p>设 $f_{u,0/1}$ 表示节点 $u$ 权值为的情况下最优答案。</p>
+<p>转移就分类讨论一下：</p>
+<ul>
+<li>$x_{u}=1$</li>
+</ul>
+<p>$
+\begin{cases}
+f_{u,0}=\max{f_{v,0}}+1 \
+f_{u,1}=\max{f_{v,1}}+1
+\end{cases}
+$</p>
+<ul>
+<li>$x_{u}=2$</li>
+</ul>
+<p>$
+f_{u,1}=\max{f_{v,0}}+1
+$</p>
+<p>答案也需要分类讨论（这里设 $x,y\in\text{son}(u)$）：</p>
+<ul>
+<li>$x_{u}=1$</li>
+</ul>
+<p>答案为 $\frac{1}{\max{f_{x,0}+f_{y,0}+1}}$，以及 $\frac{2}{\max{f_{x,0}+f_{y,1}}+1}$。</p>
+<ul>
+<li>$x_{u}=2$</li>
+</ul>
+<p>答案为 $\frac{2}{\max{f_{x,0}+f_{y,0}+1}}$。</p>
+<p>用四个变量维护最大、次大的 $f_{0},f_{1}$ 即可。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+const int MAXN = 1e6 + 5;
+
+int rint () {
+	int x = 0, f = 1; char c = getchar ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = getchar () )	f = c == &#39;-&#39; ? -f : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = getchar () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt;
+void wint ( _T x ) {
+	if ( x &lt; 0 )	putchar ( &#39;-&#39; ), x = ~ x + 1;
+	if ( x &gt; 9 )	wint ( x / 10 );
+	putchar ( x % 10 ^ &#39;0&#39; );
+}
+
+template&lt;typename _T&gt; _T MIN ( const _T x, const _T y ) { return x &gt; y ? y : x; }
+
+struct starS {
+	int to, nx;
+	starS ( int T = 0, int N = 0 ) { to = T, nx = N; }
+} as[MAXN * 2];
+
+int n, cnt, Up = 1e9, Dn = 1, mnMg = 1e9, a[MAXN], f[MAXN][2], bgin[MAXN];
+
+void pushEdge ( const int u, const int v ) { as[++ cnt] = starS ( v, bgin[u] ); bgin[u] = cnt; }
+
+void checkUpt ( const int x, const int y ) { if ( Up * y &gt; Dn * x )	Up = x, Dn = y; }
+
+void dfs ( const int u, const int lst ) {
+	int mx0 = 0, se0 = 0, mx1 = 0, se1 = 0;
+	for ( int i = bgin[u]; i; i = as[i].nx ) {
+		int v = as[i].to;
+		if ( v == lst )	continue;
+		dfs ( v, u );
+		if ( f[v][0] &gt; f[mx0][0] )	se0 = mx0, mx0 = v;
+		else if ( f[v][0] &gt; f[se0][0] )	se0 = v;
+		if ( f[v][1] &gt; f[mx1][1] )	se1 = mx1, mx1 = v;
+		else if ( f[v][1] &gt; f[se1][1] )	se1 = v;
+	}
+	if ( a[u] == 1 ) {
+		f[u][0] = f[mx0][0] + 1;
+		checkUpt ( 1, f[mx0][0] + f[se0][0] + 1 );
+		if ( ! mx1 )	return;
+		f[u][1] = f[mx1][1] + 1;
+		if ( mx0 != mx1 )	checkUpt ( 2, f[mx0][0] + f[mx1][1] + 1 );
+		else {
+			checkUpt ( 2, f[se0][0] + f[mx1][1] + 1 );
+			if ( se1 )	checkUpt ( 2, f[mx0][0] + f[se1][1] + 1 );
+		}
+	}
+	else if ( a[u] == 2 )	f[u][1] = f[mx0][0] + 1, checkUpt ( 2, f[mx0][0] + f[se0][0] + 1 );
+}
+
+int main () {
+	n = rint ();
+	for ( int i = 1, u, v; i &lt; n; ++ i ) {
+		u = rint (), v = rint ();
+		pushEdge ( u, v ), pushEdge ( v, u );
+	}
+	for ( int i = 1; i &lt;= n; ++ i )	a[i] = rint (), mnMg = MIN ( mnMg, a[i] );
+	if ( mnMg &gt; 1 )	wint ( mnMg ), putchar ( &#39;/&#39; ), wint ( 1 ), putchar ( &#39;\n&#39; );
+	else	dfs ( 1, 0 ), wint ( Up ), putchar ( &#39;/&#39; ), wint ( Dn ), putchar ( &#39;\n&#39; );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>CF1009F Dominant Indices</h3>
+<p>重新描述问题：对于每一个节点求字数内每一层节点个数最多的一层（语文废柴）。</p>
+<p>先考虑暴力 DP。</p>
+<p>设 $f_{u,d}$ 表示节点在节点 $u$ 的子树内深度为 $d$ 的节点个数。
+$
+f_{u,d}=\sum_{v\in\text{son}(u)}f_{v,d-1}
+$
+答案显然。</p>
+<p>本着 DP 题要暴力打一遍正解打一遍的原则放一下暴力代码。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+const int MAXN = 1e3 + 5;
+
+int rint () {
+	int x = 0, f = 1; char c = getchar ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = getchar () )	f = c == &#39;-&#39; ? -1 : 1;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = getchar () ) x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt;
+void wint ( _T x ) {
+	if ( x &lt; 0 )	putchar ( &#39;-&#39; ), x = ~ x + 1;
+	if ( x &gt; 9 )	wint ( x / 10 );
+	putchar ( x % 10 ^ &#39;0&#39; );
+}
+
+struct starS {
+	int to, nx;
+	starS ( int T = 0, int N = 0 ) { to = T, nx = N; }
+} as[MAXN * 2];
+
+int n, cnt, f[MAXN][MAXN], dep[MAXN], head[MAXN];
+
+void pushEdge ( const int u, const int v ) { as[++ cnt] = starS ( v, head[u] ); head[u] = cnt; }
+
+void dfs ( const int u, const int lst ) {
+	dep[u] = dep[lst] + 1, f[u][0] = 1;
+	for ( int i = head[u]; i; i = as[i].nx ) {
+		int v = as[i].to;
+		if ( v == lst )	continue;
+		dfs ( v, u );
+		for ( int j = 1; j &lt;= n; ++ j )	f[u][j] += f[v][j - 1];
+	}
+}
+
+int main () {
+	n = rint ();
+	for ( int i = 1, u, v; i &lt; n; ++ i ) {
+		u = rint (), v = rint ();
+		pushEdge ( u, v ), pushEdge ( v, u );
+	}
+	dfs ( 1, 0 );
+	for ( int i = 1; i &lt;= n; ++ i ) {
+		int ans = 0, pos = 0;
+		for ( int j = n; ~ j; -- j ) {
+			if ( ans &lt;= f[i][j] )	ans = f[i][j], pos = j;
+		}
+		wint ( pos ), putchar ( &#39;\n&#39; );
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<p>接下来想想正解。</p>
+<p>等下这个东西是不是可以直接线段树合并。</p>
+<p>去你🐎的 DP。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+const int MAXN = 1e6 + 5;
+
+int rint () {
+	int x = 0, f = 1; char c = getchar ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = getchar () )	f = c == &#39;-&#39; ? -f : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = getchar () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt;
+void wint ( _T x ) {
+	if ( x &lt; 0 )	putchar ( &#39;-&#39; ), x = ~ x + 1;
+	if ( x &gt; 9 )	wint ( x / 10 );
+	putchar ( x % 10 ^ &#39;0&#39; );
+}
+
+template&lt;typename _T&gt; _T MAX ( const _T x, const _T y ) { return x &gt; y ? x : y; }
+
+struct starS {
+	int to, nx;
+	starS ( int T = 0, int N = 0 ) { to = T, nx = N; }
+} as[MAXN * 2];
+
+struct nodeS {
+	int lch, rch, val, dep;
+	nodeS ( int L = 0, int R = 0, int V = 0, int D = 0 ) { lch = L, rch = R, val = V, dep = D; }
+} nodes[MAXN * 4];
+
+int top, stk[MAXN * 4];
+int n, cnt, tot, head[MAXN], ans[MAXN], dep[MAXN], root[MAXN];
+
+void pushEdge ( const int u, const int v ) { as[++ cnt] = starS ( v, head[u] ), head[u] = cnt; }
+int Newnode () { return top ? stk[top --] : ++ tot; }
+
+void Upt ( const int x ) {
+	nodes[x].val = MAX ( nodes[nodes[x].lch].val, nodes[nodes[x].rch].val );
+	if ( nodes[x].val == nodes[nodes[x].lch].val )	nodes[x].dep = nodes[nodes[x].lch].dep;
+	else	nodes[x].dep = nodes[nodes[x].rch].dep;
+}
+
+void Modify ( int&amp; x, const int l, const int r, const int segP ) {
+	if ( ! x )	x = Newnode ();
+	if ( l == r )	return void ( ( nodes[x].val ++, nodes[x].dep = l ) );
+	int mid = ( l + r ) &gt;&gt; 1;
+	if ( mid &gt;= segP )	Modify ( nodes[x].lch, l, mid, segP );
+	else	Modify ( nodes[x].rch, mid + 1, r, segP );
+	Upt ( x );
+}
+
+void Merge ( int&amp; x, const int y, const int l, const int r ) {
+	if ( ! x || ! y )	return void ( x += y );
+	if ( l == r )	return void ( ( nodes[x].val += nodes[y].val, nodes[y] = nodeS (), stk[++ top] = y ) );
+	int mid = ( l + r ) &gt;&gt; 1;
+	Merge ( nodes[x].lch, nodes[y].lch, l, mid );	
+	Merge ( nodes[x].rch, nodes[y].rch, mid + 1, r );
+	Upt ( x ), nodes[y] = nodeS (), stk[++ top] = y;
+}
+
+void dfs ( const int u, const int lst ) {
+	root[u] = ++ tot, dep[u] = dep[lst] + 1;
+	for ( int i = head[u]; i; i = as[i].nx ) {
+		int v = as[i].to;
+		if ( v == lst )	continue;
+		dfs ( v, u );
+		Merge ( root[u], root[v], 1, n );
+	}
+	Modify ( root[u], 1, n, dep[u] );
+	ans[u] = nodes[root[u]].dep - dep[u];
+}
+
+int main () {
+	n = rint ();
+	for ( int i = 1, u, v; i &lt; n; ++ i ) {
+		u = rint (), v = rint ();
+		pushEdge ( u, v ), pushEdge ( v, u );
+	}
+	dfs ( 1, 0 );
+	for ( int i = 1; i &lt;= n; ++ i )	wint ( ans[i] ), putchar ( &#39;\n&#39; );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P3232 [HNOI2013]游走</h3>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#include &lt;algorithm&gt;
+
+using namespace std;
+
+const int MAXN = 500 + 5, MAXM = MAXN * MAXN;
+
+int rint () {
+	int x = 0, f = 1; char c = getchar ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = getchar () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = getchar () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt; void swapp ( _T &amp;x, _T &amp;y ) { _T w = x; x = y; y = w; }
+template&lt;typename _T&gt; _T ABS ( const _T x ) { return x &gt; 0 ? x : -x; }
+
+struct starS {
+	int to, nx;
+	starS ( int T = 0, int N = 0 ) { to = T, nx = N; }
+} as[MAXM * 2];
+
+struct edgeS {
+	int u, v;
+	double w;
+	edgeS ( int U = 0, int V = 0, double W = 0 ) { u = U, v = V, w = W; }
+	bool operator &lt; ( const edgeS &amp;another ) { return w &gt; another.w; }
+} tur[MAXM];
+
+int n, m, cnt, head[MAXN], deg[MAXN];
+double mat[MAXN][MAXN];
+
+void pushEdge ( const int u, const int v ) { as[++ cnt] = starS ( v, head[u] ), head[u] = cnt; }
+
+void Eradicate () {
+	for ( int i = 1; i &lt;= n; ++ i ) {
+		int p = i;
+		for ( int j = i + 1; j &lt;= n; ++ j ) {
+			if ( ABS ( mat[j][i] ) &gt; ABS ( mat[p][i] ) )	p = j;
+		}
+		for ( int j = i; j &lt;= n + 1; ++ j )	swapp ( mat[i][j], mat[p][j] );
+		for ( int j = i + 1; j &lt;= n; ++ j ) {
+			for ( int k = i + 1; k &lt;= n + 1; ++ k )	mat[j][k] -= mat[i][k] * mat[j][i] / mat[i][i];
+		}
+	}
+	for ( int i = n; ~ i; -- i ) {
+		for ( int j = i + 1; j &lt;= n; ++ j )	mat[i][n + 1] -= mat[j][n + 1] * mat[i][j];
+		mat[i][n + 1] /= mat[i][i];
+	}
+}
+
+int main () {
+	n = rint () - 1, m = rint ();
+	for ( int i = 1, u, v; i &lt;= m; ++ i ) {
+		u = rint (), v = rint ();
+		tur[i] = edgeS ( u, v );
+		deg[u] ++, deg[v] ++;
+		pushEdge ( u, v ), pushEdge ( v, u );
+	}
+	for ( int _ = 1; _ &lt;= n; ++ _ ) {
+		int u = _;
+		for ( int i = head[u]; i; i = as[i].nx ) {
+			int v = as[i].to;
+			if ( v == n + 1 )	continue;
+			mat[u][v] = 1.0 / deg[v];
+		}
+		mat[u][u] = -1;
+		if ( u == 1 )	mat[u][n + 1] = -1;
+	}
+	Eradicate ();
+	for ( int i = 1; i &lt;= m; ++ i )	{
+		int u = tur[i].u, v = tur[i].v;
+		tur[i].w = mat[u][n + 1] / deg[u] + mat[v][n + 1] / deg[v];
+	}
+	sort ( tur + 1, tur + 1 + m );
+	double ans = 0;
+	for ( int i = 1; i &lt;= m; ++ i )	ans += tur[i].w * i;
+	printf ( &quot;%.3lf\n&quot;, ans );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P1600 NOIP 2016 天天爱跑步 - AC</h3>
+<p>先打个深度数组 $d$，然后 $\text{dist}(u,v)=d_{u}+d_{v}-2\times d_{\text{lca}(u,v)}$。</p>
+<p>我们假设点 $u$ 在左边，点 $v$ 在右边，令 $x=\text{lca}(u,v)$（$u,v$ 分别是一位玩家的起点和终点）。</p>
+<p>先考虑 $[u,x]$ 这条路径，设一个点 $k$ 在这条链上。</p>
+<p>那么点 $k$ 的观察员观察到玩家需要满足 $w_{k}=d_{u}-d_{k}$。</p>
+<p>再考虑 $(x,v]$ 这条路径，也设一个点 $k$ 在这条链上。</p>
+<p>那么点 $k$ 的观察员观察到玩家需要满足 $w_{k}=d_{u}-2\times d_{x}+d_{k}$。</p>
+<p>那么我们就可以考虑转化一下问题，对于每一个点的观察员考虑满足条件的玩家数量然后再把答案加起来。</p>
+<p>把 $[u,x]$ 路径的条件转化一下 $w_{k}=d_{u}-d_{k}\Longrightarrow d_{u}=d_{k}+w_{k}$，这样的话我们可以把 $[u,x]$ 路径上加上一个点权 $d_{u}$，然后询问 $d_{k}+w_{k}$ 的数量。</p>
+<p>至于 $(x,v]$ 的情况和 $[u,x]$ 差不多。</p>
+<p>把 $(x,v]$ 路径的条件转化一下 $w_{k}=d_{u}-2\times d_{x}+d_{k}\Longrightarrow w_{k}-d_{k}=d_{u}-2\times d_{x}$，这样的话我们可以把 $(x,v]$ 路径上加上一个点权 $d_{u}-2\times d_{x}$，然后询问 $w_{k}-d_{k}$ 的数量。</p>
+<p>以上两种情况都可以用动态开点权值（深度）线段树然后线段树合并解决，差分一下即可。</p>
+<p>哦对了情况二有可能深度减出负数所以需要加个 $n$ 哦。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+const int MAXN = 3e5 + 5;
+
+int rint () {
+	int x = 0, f = 1; char c = getchar ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = getchar () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = getchar () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt;
+void wint ( _T x ) {
+	if ( x &lt; 0 )	putchar ( &#39;-&#39; ), x = ~ x + 1;
+	if ( x &gt; 9 )	wint ( x / 10 );
+	putchar ( x % 10 + &#39;0&#39; );
+}
+
+template&lt;typename _T&gt; void swapp ( _T &amp;x, _T &amp;y ) { _T w = x; x = y; y = w; }
+
+struct GraphSet {
+	int to, nx;
+	GraphSet ( int T = 0, int N = 0 ) { to = T, nx = N; }
+} as[MAXN * 2];
+
+struct SegmentTree {
+	int lch, rch, val;
+	SegmentTree ( int L = 0, int R = 0, int V = 0 ) { lch = L, rch = R, val = V; }
+} nodes[MAXN * 18 * 4];
+
+int n, m, cnt, tot, upper, begin[MAXN], depth[MAXN], kfa[MAXN][21], weight[MAXN];
+int oneR[MAXN], anotherR[MAXN], ans[MAXN];
+
+void makeEdge ( const int u, const int v ) { as[++ cnt] = GraphSet ( v, begin[u] ), begin[u] = cnt; }
+
+void dfs ( const int u, const int lst ) {
+	depth[u] = depth[lst] + 1, kfa[u][0] = lst;
+	for ( int i = 1; i &lt;= 20; ++ i )	kfa[u][i] = kfa[kfa[u][i - 1]][i - 1];
+	for ( int i = begin[u]; i; i = as[i].nx ) {
+		int v = as[i].to;
+		if ( v == lst )	continue;
+		dfs ( v, u );
+	}
+}
+
+int calcLCA ( int u, int v ) {
+	if ( depth[u] &lt; depth[v] )	swapp ( u, v );
+	for ( int i = 20; ~ i; -- i ) {
+		if ( depth[kfa[u][i]] &gt;= depth[v] )	u = kfa[u][i];
+	}
+	if ( u == v )	return u;
+	for ( int i = 20; ~ i; -- i ) {
+		if ( kfa[u][i] != kfa[v][i] )	u = kfa[u][i], v = kfa[v][i];
+	}
+	return kfa[u][0];
+}
+
+void Upt ( const int x ) { nodes[x].val = nodes[nodes[x].lch].val + nodes[nodes[x].rch].val; }
+void Modify ( int &amp;x, const int l, const int r, const int segP, const int segW ) {
+	if ( ! x )	x = ++ tot;
+	if ( l == r )	return void ( nodes[x].val += segW );
+	int mid = ( l + r ) &gt;&gt; 1;
+	if ( mid &gt;= segP )	Modify ( nodes[x].lch, l, mid, segP, segW );
+	else	Modify ( nodes[x].rch, mid + 1, r, segP, segW );
+	Upt ( x );
+}
+
+int Query ( const int x, const int l, const int r, const int segP ) {
+	if ( l == r )	return nodes[x].val;
+	int mid = ( l + r ) &gt;&gt; 1;
+	if ( mid &gt;= segP )	return Query ( nodes[x].lch, l, mid, segP );
+	else	return Query ( nodes[x].rch, mid + 1, r, segP );
+}
+
+int Merge ( const int x, const int y, const int l, const int r ) {
+	if ( ! x || ! y )	return x | y;
+	if ( l == r )	return ( nodes[x].val += nodes[y].val, x );
+	int mid = ( l + r ) &gt;&gt; 1;
+	nodes[x].lch = Merge ( nodes[x].lch, nodes[y].lch, l, mid );
+	nodes[x].rch = Merge ( nodes[x].rch, nodes[y].rch, mid + 1, r );
+	Upt ( x );
+	return x;
+}
+
+void Solve ( const int u, const int lst ) {
+	for ( int i = begin[u]; i; i = as[i].nx ) {
+		int v = as[i].to;
+		if ( v == lst )	continue;
+		Solve ( v, u );
+		oneR[u] = Merge ( oneR[u], oneR[v], 1, upper );
+		anotherR[u] = Merge ( anotherR[u], anotherR[v], 1, upper );
+	}
+	ans[u] = Query ( oneR[u], 1, upper, depth[u] + weight[u] ) + Query ( anotherR[u], 1, upper, weight[u] - depth[u] + n );
+}
+
+int main () {
+	n = rint (), m = rint ();
+	for ( int i = 1, u, v; i &lt; n; ++ i ) {
+		u = rint (), v = rint ();
+		makeEdge ( u, v ), makeEdge ( v, u );
+	}
+	for ( int i = 1; i &lt;= n; ++ i )	weight[i] = rint ();
+	dfs ( 1, 0 );
+	upper = ( n &lt;&lt; 1 );
+	for ( int i = 1, u, v; i &lt;= m; ++ i ) {
+		u = rint (), v = rint ();
+		int x = calcLCA ( u, v );
+		Modify ( oneR[u], 1, upper, depth[u], 1 );
+		Modify ( oneR[x], 1, upper, depth[u], -1 );
+		Modify ( anotherR[v], 1, upper, depth[u] - 2 * depth[x] + n, 1 );
+		Modify ( anotherR[kfa[x][0]], 1, upper, depth[u] - 2 * depth[x] + n, -1 );
+	}
+	Solve ( 1, 0 );
+	for ( int i = 1; i &lt;= n; ++ i )	wint ( ans[i] ), putchar ( &#39; &#39; );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>POJ1222 熄灯游戏</h3>
+<p>用 $m_{i,j}$ 表示答案，$a_{i,j}$ 表示原矩阵。</p>
+<p>则方程为 $(m_{i,j}+m_{i-1,j}+m_{i+1,j}+m_{i,j-1}+m_{i,j+1}+a_{i,j})\operatorname{bitand}1=0$。</p>
+<p>变下形高消即可。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#include &lt;cstring&gt;
+
+const int MAXN = 50;
+
+template&lt;typename _T&gt; void swapp ( _T &amp;x, _T &amp;y ) { _T w = x; x = y; y = w; }
+
+int mat[MAXN][MAXN], ori[MAXN][MAXN];
+int wax[5] = { 0, 0, 0, 1, -1 }, way[5] = { 0, 1, -1, 0, 0 };
+
+int has ( const int x, const int y ) { return ( x - 1 ) * 6 + y; }
+
+void Eradicate () {
+	for ( int i = 1; i &lt;= 30; ++ i ) {
+		int p = i;
+		for ( int j = i + 1; j &lt;= 30; ++ j ) {
+			if ( mat[p][i] &lt; mat[j][i] )	p = j;
+		}
+		for ( int j = 1; j &lt;= 31; ++ j )	swapp ( mat[p][j], mat[i][j] );
+		for ( int j = 1; j &lt;= 30; ++ j ) {
+			if ( i == j || ! mat[j][i] )	continue;
+			for ( int k = 1; k &lt;= 31; ++ k )	mat[j][k] ^= mat[i][k];
+		}
+	}
+}
+
+int main () {
+	int cases; scanf ( &quot;%d&quot;, &amp;cases );
+	for ( int _ = 1; _ &lt;= cases; ++ _ ) {
+		memset( mat, 0, sizeof ( mat ) );
+		for ( int i = 1; i &lt;= 5; ++ i ) {
+			for ( int j = 1; j &lt;= 6; ++ j )	scanf ( &quot;%d&quot;, &amp;ori[i][j] );
+		}
+		for ( int i = 1; i &lt;= 5; ++ i ) {
+			for ( int j = 1; j &lt;= 6; ++ j ) {
+				for ( int k = 0; k &lt; 5; ++ k ) {
+					int nxi = i + wax[k], nxj = j + way[k];
+					if ( nxi &gt;= 1 &amp;&amp; nxi &lt;= 5 &amp;&amp; nxj &gt;= 1 &amp;&amp; nxj &lt;= 6 )	mat[has ( i, j )][has ( nxi, nxj )] = 1;
+				}
+				mat[has ( i, j )][31] = ori[i][j];
+			}
+		}
+		Eradicate ();
+		printf ( &quot;PUZZLE #%d\n&quot;, _ );
+		for ( int i = 1; i &lt;= 5; ++ i ) {
+			for ( int j = 1; j &lt;= 6; ++ j )	printf ( &quot;%d &quot;, mat[has ( i, j )][31] );
+			putchar ( &#39;\n&#39; );
+		}
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P2973 [USACO10HOL]Driving Out the Piggies G</h3>
+<p>直接设概率做不来的样子。。。</p>
+<p>问了一下懂行的人发现需要设期望。</p>
+<p>设 $f_{u}$ 为节点经过 $u$ 的期望次数，设 $E$ 为边集，$d_{u}$ 表示节点 $u$ 的度。
+$
+f_{u}=(1-\frac{p}{q})\sum_{(u,v)\in E}\frac{1}{d_{v}}f_{v}
+$
+因为有环，所以需要高斯消元一下。</p>
+<p>那么在每个节点爆炸的概率即为 $f_{u}\times\frac{p}{q}$。</p>
+<p>总结一下，这道题告诉了我不仅是期望可以回归本质用概率搞，概率也可以用期望来整。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+const int MAXN = 300 + 5, MAXM = MAXN * MAXN;
+
+template&lt;typename _T&gt; _T ABS ( const _T x ) { return x &gt; 0 ? x : -x; }
+template&lt;typename _T&gt; void swapp ( _T &amp;x, _T &amp;y ) { _T w = x; x = y; y = x; }
+
+struct GraphSet {
+	int to, nx;
+	GraphSet ( int T = 0, int N = 0 ) { to = T, nx = N; }
+} as[MAXM];
+
+int n, m, p, q, cnt, d[MAXN], begin[MAXN];
+double mat[MAXN][MAXN], sol[MAXN], boomed, transed;
+
+void makeEdge ( const int u, const int v ) { as[++ cnt] = GraphSet ( v, begin[u] ), begin[u] = cnt; }
+
+void Eradicate () {
+	for ( int i = 1; i &lt;= n; ++ i ) {
+		int p = i;
+		for ( int j = i + 1; j &lt;= n; ++ j ) {
+			if ( ABS ( mat[p][i] ) &lt; ABS ( mat[j][i] ) )	p = j;
+		}
+		for ( int j = 1; j &lt;= n + 1; ++ j )	swapp ( mat[p][j], mat[i][j] );
+		for ( int j = 1; j &lt;= n; ++ j ) {
+			if ( i == j )	continue;
+			double d = mat[j][i] / mat[i][i];
+			for ( int k = 1; k &lt;= n + 1; ++ k )	mat[j][k] -= mat[i][k] * d;
+		}
+	}
+	for ( int i = 1; i &lt;= n; ++ i )	sol[i] = mat[i][n + 1] / mat[i][i];
+}
+
+int main () {
+	scanf ( &quot;%d%d%d%d&quot;, &amp;n, &amp;m, &amp;p, &amp;q );
+	for ( int i = 1, u, v; i &lt;= m; ++ i ) {
+		scanf ( &quot;%d%d&quot;, &amp;u, &amp;v );
+		makeEdge ( u, v ), makeEdge( v, u );
+		d[u] ++, d[v] ++;
+	}
+	boomed = ( double )p / ( double )q;
+	transed = 1 - boomed;
+	for ( int _ = 1; _ &lt;= n; ++ _ ) {
+		int u = _;
+		mat[u][u] = 1;
+		for ( int i = begin[u]; i; i = as[i].nx ) {
+			int v = as[i].to;
+			mat[u][v] -= transed / d[v];
+		}
+	}
+	mat[1][n + 1] = 1;
+	Eradicate ();
+	for ( int i = 1; i &lt;= n; ++ i )	printf ( &quot;%.9lf\n&quot;, sol[i] * boomed );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>CF113D Museum</h3>
+<p>设 $f_{u,v}$ 表示同一时刻 Petya 在点 $u$，Vasya 在点 $v$ 的概率。
+$
+f_{u,v}=p_{u}p_{v}f_{u,v}+\sum_{(u,u&#39;)\in E}\sum_{(v,v&#39;)\in E}\frac{1-p_{u&#39;}}{d_{u&#39;}}\frac{1-p_{v&#39;}}{d_{v&#39;}}f_{u&#39;,v&#39;}+\sum_{(u,u&#39;)\in E}p_{v}\frac{1-p_{u&#39;}}{d_{v&#39;}}f_{u&#39;,v}+\sum_{(v,v&#39;)\in E}p_{u}\frac{1-p_{v&#39;}}{d_{v&#39;}}f_{u,v&#39;}
+$
+完了。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+const double EPS = 1e-8;
+const int MAXN = 500 + 5, MAXM = MAXN * MAXN;
+
+template&lt;typename _T&gt; _T ABS ( const _T x ) { return x &gt; 0 ? x : -x; }
+template&lt;typename _T&gt; void swapp ( _T &amp;x, _T &amp;y ) { _T w = x; x = y; y = w; }
+
+struct GraphSet {
+	int to, nx;
+	GraphSet ( int T = 0, int N = 0 ) { to = T, nx = N; }
+} as[MAXM];
+
+int n, m, s, t, cnt, upper, d[MAXN], begin[MAXN];
+double mat[MAXN][MAXN], p[MAXN];
+
+int has ( const int x, const int y ) { return ( x - 1 ) * n + y; }
+void makeEdge ( const int u, const int v ) { as[++ cnt] = GraphSet ( v, begin[u] ), begin[u] = cnt; }
+
+void Eradicate () {
+	for ( int i = 1; i &lt;= upper; ++ i ) {
+		int p = i;
+		for ( int j = i + 1; j &lt;= upper; ++ j ) {
+			if ( ABS ( mat[p][i] ) &lt; ABS ( mat[j][i] ) )	p = i;
+		}
+		for ( int j = i + 1; j &lt;= upper + 1; ++ j )	swapp ( mat[p][j], mat[i][j] );
+		if ( ABS ( mat[i][i] ) &lt; EPS )	continue;
+		for ( int j = 1; j &lt;= upper; ++ j ) {
+			if ( i == j )	continue;
+			double d = mat[j][i] / mat[i][i];
+			for ( int k = 1; k &lt;= upper + 1; ++ k )	mat[j][k] -= mat[i][k] * d;
+		}
+	}
+	for ( int i = 1; i &lt;= upper; ++ i )	mat[i][upper + 1] /= mat[i][i];
+}
+
+int main () {
+	scanf ( &quot;%d%d%d%d&quot;, &amp;n, &amp;m, &amp;s, &amp;t ), upper = n * n;
+	for ( int i = 1, u, v; i &lt;= m; ++ i ) {
+		scanf ( &quot;%d%d&quot;, &amp;u, &amp;v );
+		makeEdge ( u, v ), makeEdge ( v, u );
+		d[u] ++, d[v] ++;
+	}
+	for ( int i = 1; i &lt;= n; ++ i )	scanf ( &quot;%lf&quot;, &amp;p[i] );
+	for ( int i = 1; i &lt;= n; ++ i ) {
+		for ( int j = 1; j &lt;= n; ++ j ) {
+			if ( i == j )	mat[has ( i, j )][has ( i, j )] = 1;
+			else	mat[has ( i, j )][has ( i, j )] = 1 - p[i] * p[j];
+			for ( int ii = begin[i]; ii; ii = as[ii].nx ) {
+				int u = as[ii].to;
+				for ( int iii = begin[j]; iii; iii = as[iii].nx ) {
+					int v = as[iii].to;
+					if ( u == v )	continue;
+					mat[has ( i, j )][has ( u, v )] = -( 1 - p[u] ) / d[u] * ( 1 - p[v] ) / d[v];
+				}
+			}
+			for ( int ii = begin[i]; ii; ii = as[ii].nx ) {
+				int u = as[ii].to;
+				if ( u == j )	continue;
+				mat[has ( i, j )][has ( u, j )] = -p[j] * ( 1 - p[u] ) / d[u];
+			}
+			for ( int ii = begin[j]; ii; ii = as[ii].nx ) {
+				int v = as[ii].to;
+				if ( i == v )	continue;
+				mat[has ( i, j )][has ( i, v )] = -p[i] * ( 1 - p[v] ) / d[v];
+			}
+		}
+	}
+	mat[has ( s, t )][upper + 1] = 1;
+	Eradicate ();
+	for ( int i = 1; i &lt;= n; ++ i )	printf ( &quot;%.9lf &quot;, mat[has ( i, i )][upper + 1] );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>CF652E Pursuit For Artifacts - AC</h3>
+<p>缩个点没了。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;queue&gt;
+#include &lt;cstdio&gt;
+#include &lt;cstdlib&gt;
+#define begin DEFAR1
+
+using namespace std;
+
+const int MAXN = 3e5 + 5;
+
+int rint () {
+	int x = 0, f = 1; char c = getchar ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = getchar () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = getchar () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt; _T MIN ( const _T x, const _T y ) { return x &lt; y ? x : y; }
+
+struct GraphSet {
+	int to, nx, wt;
+	GraphSet ( int T = 0, int N = 0, int W = 0 ) { to = T, nx = N, wt = W; }
+} as[MAXN * 2];
+
+struct EdgeSet {
+	int nx, wt;
+	EdgeSet ( int N = 0, int W = 0 ) { nx = N, wt = W; }
+};
+
+vector&lt;EdgeSet&gt; newG[MAXN];
+int n, m, s, t, cnt, sjc, dfn[MAXN], low[MAXN], top, stk[MAXN], begin[MAXN], vis[MAXN], col, bel[MAXN], pnt[MAXN], ind[MAXN];
+
+void makeEdge ( const int u, const int v, const int w ) { as[++ cnt] = GraphSet ( v, begin[u], w ), begin[u] = cnt; }
+
+void dfs ( const int u, const int lst ) {
+	vis[u] = 1, stk[++ top] = u;
+	dfn[u] = ++ sjc, low[u] = sjc;
+	for ( int i = begin[u]; i; i = as[i].nx ) {
+		int v = as[i].to;
+		if ( v == lst )	continue;
+		if ( ! dfn[v] )	dfs ( v, u ), low[u] = MIN ( low[u], low[v] );
+		else if ( vis[v] )	low[u] = MIN ( low[u], dfn[v] );
+	}
+	if ( low[u] == dfn[u] ) {
+		int v = 0; col ++;
+		while ( u != v )	v = stk[top --], vis[v] = 0, bel[v] = col;
+	}
+}
+
+void solve ( const int u, int ans ) {
+	if ( pnt[u] )	ans = 1;
+	if ( u == t ) {
+		if ( ans )	printf ( &quot;YES\n&quot; );
+		else	printf ( &quot;NO\n&quot; );
+		exit ( 0 );
+	}
+	ind[u] = 1;
+	for ( unsigned i = 0; i &lt; newG[u].size (); ++ i ) {
+		int v = newG[u][i].nx, w = newG[u][i].wt;
+		if ( ind[v] )	continue;
+		solve ( v, ans | w );
+	}
+}
+
+int main () {
+	n = rint (), m = rint ();
+	for ( int i = 1, u, v, w; i &lt;= m; ++ i ) {
+		u = rint (), v = rint (), w = rint ();
+		makeEdge ( u, v, w ), makeEdge ( v, u, w );
+	}
+	dfs ( 1, 0 );
+	for ( int _ = 1; _ &lt;= n; ++ _ ) {
+		int u = _;
+		for ( int i = begin[u]; i; i = as[i].nx ) {
+			int v = as[i].to, w = as[i].wt;
+			if ( bel[u] == bel[v] ) { pnt[bel[u]] |= w; continue; }
+			newG[bel[u]].push_back ( EdgeSet ( bel[v], w ) );
+			newG[bel[v]].push_back ( EdgeSet ( bel[u], w ) ); 
+		}
+	}
+	s = rint (), t = rint (), s = bel[s], t = bel[t];
+	solve ( s, 0 );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P6807 [BalticOI 2010 Day2] Matching Bins</h3>
+<p>注意到值域乘范围刚好能过。</p>
+<p>然后就存两个桶即可。。。（数组开小飞了半天才调出来。。。）</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+const int MAXN = 2e4 + 5, MAXM = 1e3 + 5;
+
+int n, m, a[MAXN], oneB[MAXM], anotherB[MAXN];
+
+int main () {
+	scanf ( &quot;%d%d&quot;, &amp;m, &amp;n );
+	for ( int i = 1; i &lt;= n; ++ i )	scanf ( &quot;%d&quot;, &amp;a[i] );
+	int ans = 0;
+	for ( int i = 1; ( i &lt;&lt; 1 ) &lt;= n; ++ i ) {
+		oneB[a[i]] ++;
+		for ( int j = i + 1; j &lt;= ( i &lt;&lt; 1 ); ++ j )	anotherB[a[j] - 1] ++;
+		int oneR = 0, anotherR = 0, suc = 1;
+		for ( int j = 0; j &lt;= m; ++ j ) {
+			oneR += oneB[j], anotherR += anotherB[j];
+			if ( oneR &lt; anotherR ) { suc = 0; break; }
+		}
+		for ( int j = i + 1; j &lt;= ( i &lt;&lt; 1 ); ++ j )	anotherB[a[j] - 1] --;
+		if ( suc )	ans = i;
+	}
+	printf ( &quot;%d\n&quot;, ans );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>CF414C Mashmokh and Reverse Operation</h3>
+<p>考虑一次反转后对整个序列造成的影响。</p>
+<p>每次操作相当于把整个序列分成了 $2^{n-q}$ 个块，我们只需要考虑块内和块外。</p>
+<p>考虑一个块对其他块的情况。</p>
+<p>嗯。</p>
+<p>没有影响，完。</p>
+<p>那么我们只需要考虑如何快速计算出每个块内的变化即可。</p>
+<p>像归并排序一样考虑问题，把序列分成 $n$ 层（把二叉树画出来）。</p>
+<p>要反转区间 $[l,r]$ 就要翻转 $[l,m],[m+1,r],m=\lfloor\frac{l+r}{2}\rfloor$，以此类推。</p>
+<p>然后就预处理出每一层顺序对逆序对即可。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#define LL long long
+
+const int MAXN = ( 1 &lt;&lt; 20 ) + 5, MAXM = 1e6 + 5;
+
+LL rint () {
+	LL x = 0, f = 1; char c = getchar ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = getchar () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = getchar () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt;
+void wint ( _T x ) {
+	if ( x &lt; 0 )	putchar ( &#39;-&#39; ), x = ~ x + 1;
+	if ( x &gt; 9 )	wint ( x / 10 );
+	putchar ( x % 10 ^ &#39;0&#39; );
+}
+
+template&lt;typename _T&gt; void swapp ( _T &amp;x, _T &amp;y ) { _T w = x; x = y; y = w; }
+
+int n, m, ts, a[MAXN], fm[MAXN];
+LL cnt[25][2];
+
+void Merge ( const int l, const int r, const int x ) {
+	if ( l &gt;= r )	return;
+	int mid = ( l + r ) &gt;&gt; 1;
+	Merge ( l, mid, x - 1 ), Merge ( mid + 1, r, x - 1 );
+	int i = l, j = mid + 1;
+	for ( ; i &lt;= mid &amp;&amp; j &lt;= r; ) {
+		if ( a[i] &lt; a[j] )	cnt[x][1] += r - j + 1, ++ i;
+		else	++ j;
+	}
+	i = l, j = mid + 1;
+	int s = 0;
+	for ( ; i &lt;= mid &amp;&amp; j &lt;= r; ) {
+		if ( a[i] &gt; a[j] )	cnt[x][0] += mid - i + 1, fm[s ++] = a[j ++];
+		else	fm[s ++] = a[i ++];
+	}
+	for ( ; i &lt;= mid; fm[s ++] = a[i ++] ) ;
+	for ( ; j &lt;= r; fm[s ++] = a[j ++] ) ;
+	for ( int i = l; i &lt;= r; ++ i )	a[i] = fm[i - l];
+}
+
+int main () {
+	n = rint ();
+	for ( int i = 1; i &lt;= ( 1 &lt;&lt; n ); ++ i )	a[i] = rint ();
+	Merge ( 1, 1 &lt;&lt; n, n );
+	m = rint ();
+	for ( int _ = 1; _ &lt;= m; ++ _ ) {
+		int x = rint ();
+		LL res = 0;
+		while ( x -- &gt; 0 )	swapp ( cnt[x + 1][0], cnt[x + 1][1] );
+		for ( int i = 1; i &lt;= n; ++ i )	res += cnt[i][0];
+		wint ( res ), putchar ( &#39;\n&#39; );
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>LOC25917 最大K段和</h3>
+<p><a href="http://222.180.160.110:1024/problem/25917">Desc. &amp; Link.</a></p>
+<p>暴力为 $\Theta(NK)$。</p>
+<p>正解（也许）：</p>
+<p>把每一个全为正整数的子段找出来。</p>
+<p>然后判断一下中间连接的情况即可。</p>
+<p>但是这样决策情况太多了。</p>
+<p>我们需要考虑贪心。</p>
+<p>把所有整数段的个数记为 $totP$，每个子段的区间记为 $[posL_{i},posR_{i}]$，区间和记为 $sumP_{i}$</p>
+<p>把其他的负数段个数记为 $totN$，区间和记为 $sumN_{i}$。</p>
+<p>当 $totP\le k$ 答案显然。</p>
+<p>我们需要考虑的是 $totP&gt;k$ 的情况。</p>
+<p>我们把整数段、负数段缩成点。</p>
+<p>然后问题还是最多选 $k$ 段的最大子段和。</p>
+<p>不过我们的序列有个性质：相邻数的正负性不同。（gu）</p>
+<p>好了放弃以上想法。</p>
+<p>模拟 $k$ 轮找全局最大子段和，找到一次把子段乘上 $-1$。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+typedef long long LL;
+
+const int MAXN = 1e5 + 5;
+
+int rint () {
+	int x = 0, f = 1; char c = getchar ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = getchar () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = getchar () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt;
+void wint ( _T x ) {
+	if ( x &lt; 0 )	putchar ( &#39;-&#39; ), x = ~ x + 1;
+	if ( x &gt; 9 )	wint ( x / 10 );
+	putchar ( x % 10 ^ &#39;0&#39; );
+}
+
+template&lt;typename _T&gt; _T MAX ( const _T x, const _T y ) { return x &lt; y ? y : x; }
+template&lt;typename _T&gt; void swapp ( _T &amp;x, _T &amp;y ) { _T w = x; x = y; y = w; }
+
+struct nodeS {
+	LL val, dat, p, s;
+	int l, r, pl, pr, sl, sr;
+	nodeS ( LL V = 0, LL D = 0, LL P = 0, LL S = 0,
+			int L = 0, int R = 0, int Pl = 0, int Pr = 0, int Sl = 0, int Sr = 0 ) {
+				val = V, dat = D, p = P, s = S, l = L, r = R, pl = Pl, pr = Pr, sl = Sl, sr = Sr; }
+} nodes[MAXN * 4][2];
+
+int n, k, a[MAXN];
+bool tag[MAXN * 4];
+
+nodeS Merge ( const nodeS lch, const nodeS rch ) {
+	nodeS ret;
+	ret.val = lch.val + rch.val;
+	ret.p = MAX ( lch.p, lch.val + rch.p );
+	if ( ret.p == lch.p )	ret.pl = lch.pl, ret.pr = lch.pr;
+	else	ret.pl = lch.pl, ret.pr = rch.pr;
+	ret.s = MAX ( rch.s, rch.val + lch.s );
+	if ( ret.s == rch.s )	ret.sl = rch.sl, ret.sr = rch.sr;
+	else	ret.sl = lch.sl, ret.sr = rch.sr;
+	ret.dat = MAX ( lch.s + rch.p, MAX ( lch.dat, rch.dat ) );
+	if ( ret.dat == lch.dat )	ret.l = lch.l, ret.r = lch.r;
+	else if ( ret.dat == rch.dat )	ret.l = rch.l, ret.r = rch.r;
+	else	ret.l = lch.sl, ret.r = rch.pr;
+	return ret;
+}
+
+void Upt ( const int x ) {
+	nodes[x][0] = Merge ( nodes[x &lt;&lt; 1][0], nodes[x &lt;&lt; 1 | 1][0] );
+	nodes[x][1] = Merge ( nodes[x &lt;&lt; 1][1], nodes[x &lt;&lt; 1 | 1][1] );
+}
+
+void Spr ( const int x ) {
+	if ( ! tag[x] )	return;
+	swapp ( nodes[x &lt;&lt; 1][0], nodes[x &lt;&lt; 1][1] );
+	swapp ( nodes[x &lt;&lt; 1 | 1][0], nodes[x &lt;&lt; 1 | 1][1] );
+	tag[x &lt;&lt; 1] ^= 1, tag[x &lt;&lt; 1 | 1] ^= 1, tag[x] = 0;
+}
+
+void Build ( const int x, const int l, const int r ) {
+	if ( l == r ) {
+		nodes[x][0] = nodeS ( a[l], a[l], a[l], a[l], l, l, l, l, l, l );
+		nodes[x][1] = nodeS ( -a[l], -a[l], -a[l], -a[l], l, l, l, l, l, l );
+		return;
+	}
+	int mid = ( l + r ) &gt;&gt; 1;
+	Build ( x &lt;&lt; 1, l, mid );
+	Build ( x &lt;&lt; 1 | 1, mid + 1, r );
+	Upt ( x );
+}
+
+void Modify ( const int x, const int l, const int r, const int segL, const int segR ) {
+	if ( l &gt; segR || r &lt; segL )	return;
+	if ( l &gt;= segL &amp;&amp; r &lt;= segR ) {
+		swapp ( nodes[x][0], nodes[x][1] );
+		tag[x] ^= 1;
+		return;
+	}
+	int mid = ( l + r ) &gt;&gt; 1;
+	Spr ( x );
+	Modify ( x &lt;&lt; 1, l, mid, segL, segR );
+	Modify ( x &lt;&lt; 1 | 1, mid + 1, r, segL, segR );
+	Upt ( x );
+}
+
+int main () {
+	n = rint (), k = rint ();
+	for ( int i = 1; i &lt;= n; ++ i )	a[i] = rint ();
+	Build ( 1, 1, n );
+	LL ans = 0;
+	while ( k -- &gt; 0 ) {
+		nodeS ret = nodes[1][0];
+		if ( ret.dat &lt; 0 )	break;
+		Modify ( 1, 1, n, ret.l, ret.r );
+		ans += ret.dat;
+	}
+	wint ( ans ), putchar ( &#39;\n&#39; );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>LOC25918 双端队列xLIS问题 - AC</h3>
+<p><a href="http://222.180.160.110:1024/problem/25918">Desc. &amp; Link.</a></p>
+<p>设 $f_{i,0/1}$ 表示把 $a_{i}$ 往头/尾放可以得到的最多的上升子序列。
+$
+f_{i,0}=\begin{cases}\max{f_{j,0},f_{j,1}}+1,a_{i}&lt;a_{j} \\max{f_{j,0},f_{j,1}},a_{i}\ge a_{j}\end{cases} \f_{i,1}=\begin{cases}\max{f_{j,0},f_{j,1}},a_{i}&lt;a_{j} \\max{f_{j,0},f_{j,1}}+1,a_{i}\ge a_{j}\end{cases}
+$
+不行。</p>
+<p>考虑普通的 LIS 怎么做。
+$
+f_{i}=\max{f_{j}}+1,a_{i}&gt;a_{j}
+$</p>
+<p>$
+a_{i}&lt;a_{j},i&lt;j
+$</p>
+<p>选择往前放的元素，放得越晚越靠前。</p>
+<p>选择往后放的元素，放得越晚越靠后。</p>
+<p>那么需要做的是把相对较大的元素往后，相对较小的元素往前。</p>
+<p>连边，把李三花后的 $a_{i}$ 连向 $\text{trans}(i,0),\text{trans}(i,1),\text{trans}(x,0/1)=n-x+1/x+n$。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#include &lt;algorithm&gt;
+
+using namespace std;
+
+const int MAXN = 2e5 + 5;
+
+int rint () {
+	int x = 0, f = 1; char c = getchar ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = getchar () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = getchar () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt;
+void wint ( _T x ) {
+	if ( x &lt; 0 )	putchar ( &#39;-&#39; ), x = ~ x + 1;
+	if ( x &gt; 9 )	wint ( x / 10 );
+	putchar ( x % 10 ^ &#39;0&#39; );
+}
+
+template&lt;typename _T&gt; _T MAX ( const _T x, const _T y ) { return x &lt; y ? y : x; }
+
+struct Value {
+	int val, pos;
+	Value ( int V = 0, int P = 0 ) { val = V, pos = P; }
+	bool operator &lt; ( const Value &amp;another ) { return val &lt; another.val; }
+} vals[MAXN];
+
+struct GraphSet {
+	int to, nx;
+	GraphSet ( int T = 0, int N = 0 ) { to = T, nx = N; }
+} as[MAXN * 2];
+
+int n, cnt, len, degin[MAXN], a[MAXN], b[MAXN], buc[MAXN], sywf[MAXN];
+
+void makeEdge ( const int u, const int v ) { as[++ cnt] = GraphSet ( v, degin[u] ), degin[u] = cnt; }
+int Trans ( const int x, const int y ) { return ! y ? n - x + 1 : x + n; }
+
+void ADD ( int p, const int x ) { for ( ; p &lt;= ( n &lt;&lt; 1 ); p += p &amp; -p )	sywf[p] = MAX ( sywf[p], x ); }
+int ASK ( int p ) { int res = 0; for ( ; p; p -= p &amp; -p )	res = MAX ( res, sywf[p] ); return res; }
+int CMP ( const int x, const int y ) { return x &gt; y; }
+
+int main () {
+//	freopen ( &quot;dequexlis.in&quot;, &quot;r&quot;, stdin );
+//	freopen ( &quot;dequexlis.out&quot;, &quot;w&quot;, stdout );
+	n = rint ();
+	for ( int i = 1; i &lt;= n; ++ i )	a[i] = b[i] = rint ();
+	sort ( b + 1, b + 1 + n );
+	len = unique ( b + 1, b + 1 + n ) - b - 1;
+	for ( int i = 1; i &lt;= n; ++ i )	a[i] = lower_bound ( b + 1, b + 1 + len, a[i] ) - b;
+	for ( int i = 1; i &lt;= n; ++ i )	vals[i] = Value ( a[i], i );
+	for ( int i = 1; i &lt;= n; ++ i ) {
+		makeEdge ( a[i], Trans ( i, 0 ) );
+		makeEdge ( a[i], Trans ( i, 1 ) );
+	}
+	int BUC = 0;
+	for ( int x_x = 1; x_x &lt;= n; ++ x_x ) {
+		int u = x_x;
+		BUC = 0;
+		for ( int i = degin[u]; i; i = as[i].nx ) {
+			int v = as[i].to;
+			buc[++ BUC] = v;
+		}
+		sort ( buc + 1, buc + 1 + BUC, CMP );
+		for ( int i = 1; i &lt;= BUC; ++ i )	ADD ( buc[i], 1 + ASK ( buc[i] - 1 ) );
+	}
+	wint ( ASK ( n &lt;&lt; 1 ) ), putchar ( &#39;\n&#39; );
+	return 0;
+}
+
+/* Jesus bless all */
+</code></pre>
+</details>
+
+<h3>LOC25915 观察 - AC</h3>
+<p><a href="http://222.180.160.110:1024/problem/25915">Desc. &amp; Link.</a></p>
+<p>DFN 一下判断完了。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;set&gt;
+#include &lt;cstdio&gt;
+
+using namespace std;
+
+const int MAXN = 800000 + 5;
+
+int rint () {
+	int x = 0, f = 1; char c = getchar ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = getchar () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = getchar () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt;
+void wint ( _T x ) {
+	if ( x &lt; 0 )	putchar ( &#39;-&#39; ), x = ~ x + 1;
+	if ( x &gt; 9 )	wint ( x / 10 );
+	putchar ( x % 10 ^ &#39;0&#39; );
+}
+
+template&lt;typename _T&gt; void swapp ( _T &amp;x, _T &amp;y ) { _T w = x; x = y; y = w; }
+
+struct GraphSet {
+	int to, nx;
+	GraphSet ( int T = 0, int N = 0 ) { to = T, nx = N; }
+} as[MAXN *2];
+
+set&lt;int&gt; S;
+int n, m, cnt, sjc, degin[MAXN], kfa[MAXN][25], depth[MAXN], fur[MAXN], ord[MAXN], seg[MAXN];
+
+void makeEdge ( const int u, const int v ) { as[++ cnt] = GraphSet ( v, degin[u] ), degin[u] = cnt; }
+
+void dfs ( const int u, const int lst ) {
+	ord[u] = ++ sjc, depth[u] = depth[lst] + 1;
+	seg[sjc] = u, kfa[u][0] = lst;
+	for ( int i = 1; i &lt;= 20; ++ i )	kfa[u][i] = kfa[kfa[u][i - 1]][i - 1];
+	for ( int i = degin[u]; i; i = as[i].nx ) {
+		int v = as[i].to;
+		if ( v == lst )	continue;
+		dfs ( v, u ), fur[u] += fur[v];
+	}
+}
+
+int calcLCA ( int u, int v ) {
+	if ( depth[u] &lt; depth[v] )	swapp ( u, v );
+	for ( int i = 20; ~ i; -- i ) {
+		if ( depth[kfa[u][i]] &gt;= depth[v] )	u = kfa[u][i];
+	}
+	if ( u == v )	return u;
+	for ( int i = 20; ~ i; -- i ) {
+		if ( kfa[u][i] != kfa[v][i] )	u = kfa[u][i], v = kfa[v][i];
+	}
+	return kfa[u][0];
+}
+
+int main () {
+	n = rint (), m = rint ();
+	for ( int i = 2, f; i &lt;= n; ++ i )	f = rint (), makeEdge ( f, i );
+	dfs ( 1, 0 ), depth[0] = -1;
+	while ( m -- &gt; 0 ) {
+		int u = rint ();
+		if ( u &gt; 0 ) {
+			if ( ! S.insert ( ord[u] ).second )	S.erase ( ord[u] );
+			continue;
+		}
+		u = -u;
+		if ( S.empty () )	wint ( 0 ), putchar ( &#39;\n&#39; );
+		else {
+			int one = 0, another = 0;
+			auto pos = S.lower_bound ( ord[u] );
+			if ( pos != S.end () )	one = calcLCA ( u, seg[* pos] );
+			if ( pos != S.begin () )	another = calcLCA ( u, seg[* prev ( pos )] );
+			if ( depth[one] &gt;= depth[another] )	wint ( one ), putchar ( &#39;\n&#39; );
+			else	wint ( another ), putchar ( &#39;\n&#39; );
+		}
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>LOC25924 ZZH的游戏 - AC</h3>
+<p><a href="http://222.180.160.110:1024/contest/1011/problem/1">Desc. &amp; Link.</a></p>
+<p>行走的形式是比较自由的，因为只要走到了最优答案处就可以不管了，所以不需要考虑游戏的结束。</p>
+<p>考虑二分答案。</p>
+<p>然后预处理出每个节点到 $s$（另一棵树就是 $t$）的距离。</p>
+<p>判断答案合法性：</p>
+<p>首先枚举 $A$ 树的每个节点（节点编号小于当前二分的答案），然后判断需要构成答案的 $B$ 树上的节点距离 $t$ 的距离的奇偶性是否一致即可。</p>
+<p>但是这样有一个问题：我们如何确保这个答案是整个一轮移动过程中最大的？</p>
+<p>仔细考虑一下，我们判断成功的依据是行走过程中所有和不超过我们当前二分的值，那么转为判断这个问题（意思就是前面降智了）。</p>
+<p>因为这是一棵树，所以该走的路径一定会走。</p>
+<p>因为我们枚举了 $A$ 树中的节点，所以每次从哪两个节点走到 $s$、$t$ 是固定下来的。</p>
+<p>草，直接 bfs 判断找可达最小值就行了。</p>
+<p>$\Theta(n\log_{2}^{2}n)$，我觉得不行，先写。</p>
+<p>草卡卡常过了。</p>
+<details>
+
+<pre><code class="language-cpp">#pragma GCC optimize(1)
+#pragma GCC optimize(2)
+#pragma GCC optimize(3)
+#pragma GCC optimize(4)
+#pragma GCC optimize(&quot;Ofast&quot;)
+#pragma GCC optimize(&quot;inline&quot;)
+#pragma GCC optimize(&quot;-fgcse&quot;)
+#pragma GCC optimize(&quot;-fgcse-lm&quot;)
+#pragma GCC optimize(&quot;-fipa-sra&quot;)
+#pragma GCC optimize(&quot;-ftree-pre&quot;)
+#pragma GCC optimize(&quot;-ftree-vrp&quot;)
+#pragma GCC optimize(&quot;-fpeephole2&quot;)
+#pragma GCC optimize(&quot;-ffast-math&quot;)
+#pragma GCC optimize(&quot;-fsched-spec&quot;)
+#pragma GCC optimize(&quot;unroll-loops&quot;)
+#pragma GCC optimize(&quot;-falign-jumps&quot;)
+#pragma GCC optimize(&quot;-falign-loops&quot;)
+#pragma GCC optimize(&quot;-falign-labels&quot;)
+#pragma GCC optimize(&quot;-fdevirtualize&quot;)
+#pragma GCC optimize(&quot;-fcaller-saves&quot;)
+#pragma GCC optimize(&quot;-fcrossjumping&quot;)
+#pragma GCC optimize(&quot;-fthread-jumps&quot;)
+#pragma GCC optimize(&quot;-funroll-loops&quot;)
+#pragma GCC optimize(&quot;-fwhole-program&quot;)
+#pragma GCC optimize(&quot;-freorder-blocks&quot;)
+#pragma GCC optimize(&quot;-fschedule-insns&quot;)
+#pragma GCC optimize(&quot;inline-functions&quot;)
+#pragma GCC optimize(&quot;-ftree-tail-merge&quot;)
+#pragma GCC optimize(&quot;-fschedule-insns2&quot;)
+#pragma GCC optimize(&quot;-fstrict-aliasing&quot;)
+#pragma GCC optimize(&quot;-fstrict-overflow&quot;)
+#pragma GCC optimize(&quot;-falign-functions&quot;)
+#pragma GCC optimize(&quot;-fcse-skip-blocks&quot;)
+#pragma GCC optimize(&quot;-fcse-follow-jumps&quot;)
+#pragma GCC optimize(&quot;-fsched-interblock&quot;)
+#pragma GCC optimize(&quot;-fpartial-inlining&quot;)
+#pragma GCC optimize(&quot;no-stack-protector&quot;)
+#pragma GCC optimize(&quot;-freorder-functions&quot;)
+#pragma GCC optimize(&quot;-findirect-inlining&quot;)
+#pragma GCC optimize(&quot;-fhoist-adjacent-loads&quot;)
+#pragma GCC optimize(&quot;-frerun-cse-after-loop&quot;)
+#pragma GCC optimize(&quot;inline-small-functions&quot;)
+#pragma GCC optimize(&quot;-finline-small-functions&quot;)
+#pragma GCC optimize(&quot;-ftree-switch-conversion&quot;)
+#pragma GCC optimize(&quot;-foptimize-sibling-calls&quot;)
+#pragma GCC optimize(&quot;-fexpensive-optimizations&quot;)
+#pragma GCC optimize(&quot;-funsafe-loop-optimizations&quot;)
+#pragma GCC optimize(&quot;inline-functions-called-once&quot;)
+#pragma GCC optimize(&quot;-fdelete-null-pointer-checks&quot;)
+#include &lt;cstdio&gt;
+#include &lt;queue&gt;
+
+using namespace std;
+
+const int MAXN = 1e6 + 5;
+
+namespace IO{
+	const int sz=1&lt;&lt;22;
+	char a[sz+5],b[sz+5],*p1=a,*p2=a,*t=b,p[105];
+	inline char gc(){
+		return p1==p2?(p2=(p1=a)+fread(a,1,sz,stdin),p1==p2?EOF:*p1++):*p1++;
+	}
+	template&lt;class T&gt; void gi(T&amp; x){
+		x=0; char c=gc();
+		for(;c&lt;&#39;0&#39;||c&gt;&#39;9&#39;;c=gc());
+		for(;c&gt;=&#39;0&#39;&amp;&amp;c&lt;=&#39;9&#39;;c=gc())
+			x=x*10+(c-&#39;0&#39;);
+	}
+	inline void flush(){fwrite(b,1,t-b,stdout),t=b; }
+	inline void pc(char x){*t++=x; if(t-b==sz) flush(); }
+	template&lt;class T&gt; void pi(T x,char c=&#39;\n&#39;){
+		if(x==0) pc(&#39;0&#39;); int t=0;
+		for(;x;x/=10) p[++t]=x%10+&#39;0&#39;;
+		for(;t;--t) pc(p[t]); pc(c);
+	}
+	struct F{~F(){flush();}}f; 
+}
+using IO::gi;
+using IO::pi;
+
+template&lt;typename _T&gt; _T MIN ( const _T x, const _T y ) { return x &lt; y ? x : y; }
+
+struct GraphSet {
+	int to, nx;
+	GraphSet ( int T = 0, int N = 0 ) { to = T, nx = N; }
+} asA[MAXN * 2], asB[MAXN * 2];
+
+int n, s, t, cntA, cntB, beginA[MAXN], beginB[MAXN], disA[MAXN], disB[MAXN], visA[MAXN], visB[MAXN];
+
+void makeEdgeA ( const int u, const int v ) { asA[++ cntA] = GraphSet ( v, beginA[u] ), beginA[u] = cntA; }
+void makeEdgeB ( const int u, const int v ) { asB[++ cntB] = GraphSet ( v, beginB[u] ), beginB[u] = cntB; }
+
+void dfsA ( const int u, const int lst, const int dis ) {
+	disA[u] = dis;
+	for ( int i = beginA[u]; i; i = asA[i].nx ) {
+		int v = asA[i].to;
+		if ( v == lst )	continue;
+		dfsA ( v, u, dis + 1 );
+	}
+}
+
+void dfsB ( const int u, const int lst, const int dis ) {
+	disB[u] = dis;
+	for ( int i = beginB[u]; i; i = asB[i].nx ) {
+		int v = asB[i].to;
+		if ( v == lst )	continue;
+		dfsB ( v, u, dis + 1 );
+	}
+}
+
+void behaveOneSide ( int ark, int&amp; mnA, int&amp; mnB, int&amp; ord, priority_queue&lt;int, vector&lt;int&gt;, greater&lt;int&gt;&gt;&amp; align ) {
+	int preSave = mnA;
+	while ( ! align.empty () ) {
+		int u = align.top ();
+		if ( u + mnB &gt; ark )	break;
+		else	align.pop ();
+		for ( int i = beginA[u]; i; i = asA[i].nx ) {
+			int v = asA[i].to;
+			if ( visA[v] )	continue;
+			visA[v] = 1, align.push ( v );
+			mnA = MIN ( mnA, v );
+		}
+	}
+	if ( mnA == preSave )	++ ord;
+	else	ord = 0;
+}
+
+void behaveAnotherSide ( int ark, int&amp; mnA, int&amp; mnB, int&amp; ord, priority_queue&lt;int, vector&lt;int&gt;, greater&lt;int&gt;&gt;&amp; align ) {
+	int preSave = mnB;
+	while ( ! align.empty () ) {
+		int u = align.top ();
+		if ( u + mnA &gt; ark )	break;
+		else	align.pop ();
+		for ( int i = beginB[u]; i; i = asB[i].nx ) {
+			int v = asB[i].to;
+			if ( visB[v] )	continue;
+			visB[v] = 1, align.push ( v );
+			mnB = MIN ( mnB, v );
+		}
+	}
+	if ( mnB == preSave )	++ ord;
+	else	ord = 0;
+}
+
+priority_queue&lt;int, vector&lt;int&gt;, greater&lt;int&gt;&gt; oneQ, anotherQ;
+bool check ( const int x ) {
+	for ( int i = 1; i &lt;= n; ++ i )	visA[i] = visB[i] = 0;
+	for ( ; ! oneQ.empty (); oneQ.pop () ) ;
+	for ( ; ! anotherQ.empty (); anotherQ.pop () ) ;
+	oneQ.push ( s ), anotherQ.push ( t );
+	visA[s] = 1, visB[t] = 1;
+	int turn = 0, mnA = s, mnB = t, ord = 0;
+	while ( mnA &gt; 1 || mnB &gt; 1 ) {
+		turn ^= 1;
+		if ( turn )	behaveOneSide ( x, mnA, mnB, ord, oneQ );
+		else	behaveAnotherSide ( x, mnA, mnB, ord, anotherQ );
+		if ( ord &gt; 2 )	break;
+	}
+	if ( mnA == 1 &amp;&amp; mnB == 1 )	return 1;
+	else	return 0;
+}
+
+int solve ( int l, int r ) {
+	while ( l + 1 &lt; r ) {
+		int mid = ( l + r ) &gt;&gt; 1;
+		if ( check ( mid ) )	r = mid;
+		else	l = mid;
+	}
+	return r;
+}
+
+int main () {
+	int tCase;
+	gi ( tCase );
+	while ( tCase -- &gt; 0 ) {
+		gi ( n ), cntA = cntB = 0;
+		for ( int i = 1; i &lt;= n; ++ i )	beginA[i] = 0, beginB[i] = 0;
+		for ( int i = 1, u, v; i &lt; n; ++ i ) {
+			gi ( u ), gi ( v );
+			makeEdgeA ( u, v ), makeEdgeA ( v, u );
+		}
+		for ( int i = 1, u, v; i &lt; n; ++ i ) {
+			gi ( u ), gi ( v );
+			makeEdgeB ( u, v ), makeEdgeB ( v, u );
+		}
+		gi ( s ), gi ( t );
+		// dfsA ( s, 0, 0 ), dfsB ( t, 0, 0 );
+		pi ( solve ( 1, n &lt;&lt; 1 ) );
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>LOC25927 ZZH与背包 - AC</h3>
+<p><a href="http://222.180.160.110:1024/contest/1011/problem/2">Desc. &amp; Link.</a></p>
+<p>$n$ 很小，$q$ 也很小。</p>
+<p>感觉这个 $n$ 不是 $2^{n}$ 的算法也不是多项式算法欸。</p>
+<p>但复杂度一定与 $n$ 有关……</p>
+<p>草这玩意儿折半是不是可以折半搜索？</p>
+<p>我们可以搜出两边我们可以凑出的价格，分别记为 $A_{i},i\in[1,C_{A}]$、$B_{i},i\in[1,C_{B}]$。</p>
+<p>然后让 $A,B$ sorted。</p>
+<p>然后枚举 $A_{i}$，找到 $B$ 中最大的能与 $A_{i}$ 相加小于等于需要的值，然后算下贡献即可（bullshit）。</p>
+<p>不是为什么用快读本地过数据提交瓦爆啊。。。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;cstdio&gt;
+#include&lt;algorithm&gt;
+using namespace std;
+void read(long long &amp;hhh)
+{
+	long long x=0;
+	char c=getchar();
+	while(((c&lt;&#39;0&#39;)|(c&gt;&#39;9&#39;))&amp;(c^&#39;-&#39;))	c=getchar();
+	if(c^&#39;-&#39;)	x=c^&#39;0&#39;;
+	char d=getchar();
+	while((d&gt;=&#39;0&#39;)&amp;(d&lt;=&#39;9&#39;))
+	{
+		x=(x&lt;&lt;3)+(x&lt;&lt;1)+(d^&#39;0&#39;);
+		d=getchar();
+	}
+	if(c^&#39;-&#39;)	hhh=x;
+	else	hhh=-x;
+}
+void writing(long long x)
+{
+	if(!x)	return;
+	if(x&gt;9)	writing(x/10);
+	putchar((x%10)^&#39;0&#39;);
+}
+void write(long long x)
+{
+	if(x&lt;0)
+	{
+		putchar(&#39;-&#39;);
+		x=-x;
+	}
+	else if(!x)
+	{
+		putchar(&#39;0&#39;);
+		putchar(&#39;\n&#39;);
+		return;
+	}
+	writing(x);
+	putchar(&#39;\n&#39;);
+}
+long long n,q,endone,beginano,onesiz,onebuc[2000005],anosiz,anobuc[2000005],opl,opr,cud[45];
+void dfs(long long now,long long cur)
+{
+	if(now==endone+1)	onebuc[++onesiz]=cur;
+	else
+	{
+		dfs(now+1,cur+cud[now]);
+		dfs(now+1,cur);
+	}
+}
+void exdfs(long long now,long long cur)
+{
+	if(now==n+1)	anobuc[++anosiz]=cur;
+	else
+	{
+		exdfs(now+1,cur+cud[now]);
+		exdfs(now+1,cur);
+	}
+}
+long long solve(long long mos)
+{
+	long long now=anosiz;
+	long long res=0;
+	for(long long i=1;i&lt;=onesiz;++i)
+	{
+		while(now&amp;&amp;onebuc[i]+anobuc[now]&gt;mos)	now--;
+		res+=now;
+	}
+	return res;
+}
+int main()
+{
+//	read(n);
+//	read(q);
+	scanf(&quot;%lld%lld&quot;,&amp;n,&amp;q);
+//	for(long long i=1;i&lt;=n;++i)	read(cud[i]);
+	for(long long i=1;i&lt;=n;++i)	scanf(&quot;%lld&quot;,&amp;cud[i]);
+	endone=(n&gt;&gt;1);
+	beginano=endone+1;
+	dfs(1,0);
+	exdfs(beginano,0);
+	sort(onebuc+1,onebuc+onesiz+1);
+	sort(anobuc+1,anobuc+anosiz+1);
+	while(q--)
+	{
+		scanf(&quot;%lld%lld&quot;,&amp;opl,&amp;opr);
+//		read(opl);
+//		read(opr);
+//		write(solve(opr)-solve(opl-1));
+		printf(&quot;%lld\n&quot;,solve(opr)-solve(opl-1));
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>LOC25929 ZZH的旅行 - IP（科技树没点到）</h3>
+<p><a href="http://222.180.160.110:1024/contest/1011/problem/4">Desc. &amp; Link.</a></p>
+<p>相当于在树上对于每一个点找出找出一条以其为链顶的链。</p>
+<p>设 $f_{u}$ 为 $u$ 的答案。
+$
+f_{u}=\max_{v\in\text{son}(u)}{f_{v}+(a_{u}-\text{dis}(u,v))\times b_{v},0}
+$</p>
+<p>有乘法，然后题目中一堆常数。</p>
+<p>:-) 斜率优化</p>
+<p>我们令 $s_{u}=\text{dis}(1,u)$，然后
+$
+\begin{aligned}
+f_{u}
+&amp;=\max_{v\in\text{son}(u)}{f_{v}+(a_{u}+s_{u}-s_{v})\times b_{v},0} \
+&amp;=\max_{v\in\text{son}(u)}{(a_{u}-s_{u})\times b_{v}+f_{v}-s_{v}\times b_{v},0}
+\end{aligned}
+$
+令 $y=f_{u},x=a_{u}-s_{u},k=b_{v},b=f_{v}-s_{v}\times b_{v}$，那么这个东西就是一个 $y=kx+b$。</p>
+<p>那么我们现在需要在子树里维护凸包，并且能够支持合并凸包和插入直线。</p>
+<h3>CF1436D Bandit in a City - AC</h3>
+<p>先考虑二分答案，设当前二分的答案为 $x$。</p>
+<p>考虑如何判断。</p>
+<p>我们枚举每一个叶节点（这里设 $\text{subtree}(u)$ 中的叶节点集合为 $V_{l}(u)$，非叶节点集合为 $V_{f}(u)$），设当前枚举到了 $u$，那么 $x$ 这个值可行的条件为：</p>
+<ol>
+<li>$a_{u}$ 本身 $\le x$。</li>
+<li>对于 $\forall i,i&#39;\in V_{l}(i),i&#39;&#39;\in V_{f}(i)$，满足 $\sum a_{i&#39;}+a_{i&#39;&#39;}\le x\times|V_{l}(i)|$。</li>
+</ol>
+<p>那么我们就可以二分了。</p>
+<p>注意一下变量类型（小坑）。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;cstdio&gt;
+int n,cntot,val[200005],begin[200005],to[200005],nxt[200005],onesiz[200005],anosiz[200005];
+unsigned long long subcost[200005];
+void read(int &amp;hhh)
+{
+	int x=0;
+	char c=getchar();
+	while((c&lt;&#39;0&#39;||c&gt;&#39;9&#39;)&amp;&amp;c^&#39;-&#39;)	c=getchar();
+	if(c^&#39;-&#39;)	x=c^&#39;0&#39;;
+	char d=getchar();
+	while(d&gt;=&#39;0&#39;&amp;&amp;d&lt;=&#39;9&#39;)
+	{
+		x=(x&lt;&lt;3)+(x&lt;&lt;1)+(d^&#39;0&#39;);
+		d=getchar();
+	}
+	if(c^&#39;-&#39;)	hhh=x;
+	else	hhh=-x;
+}
+void writing(unsigned long long x)
+{
+	if(!x)	return;
+	if(x&gt;9)	writing(x/10);
+	putchar((x%10)^&#39;0&#39;);
+}
+void write(unsigned long long x)
+{
+	if(x&lt;0)
+	{
+		putchar(&#39;-&#39;);
+		x=-x;
+	}
+	else if(!x)
+	{
+		putchar(&#39;0&#39;);
+		putchar(&#39;\n&#39;);
+		return;
+	}
+	writing(x);
+	putchar(&#39;\n&#39;);
+}
+void dfs(int u)
+{
+	onesiz[u]=1;
+	if(!begin[u])	anosiz[u]=1;
+	subcost[u]=val[u];
+	for(int i=begin[u];i;i=nxt[i])
+	{
+		int v=to[i];
+		dfs(v);
+		onesiz[u]+=onesiz[v];
+		anosiz[u]+=anosiz[v];
+		subcost[u]+=subcost[v];
+	}
+}
+bool check(unsigned long long cur)
+{
+	for(int i=1;i&lt;=n;++i)
+	{
+		double one=subcost[i],ano=anosiz[i];
+		if(one/ano&gt;(double)cur)	return 0;
+	}
+	return 1;
+}
+long long search(long long l,long long r)
+{
+	long long res=0;
+	while(l&lt;=r)
+	{
+		long long mid=(l+r)&gt;&gt;1;
+		if(check(mid))
+		{
+			r=mid-1;
+			res=mid;
+		}
+		else	l=mid+1;
+	}
+	return res;
+}
+int main()
+{
+	read(n);
+	for(int i=2;i&lt;=n;++i)
+	{
+		int f;
+		read(f);
+		to[++cntot]=i;
+		nxt[cntot]=begin[f];
+		begin[f]=cntot;
+	}
+	for(int i=1;i&lt;=n;++i)	read(val[i]);
+	dfs(1);
+	write(search(0,2e5*1e9));
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>CF1093D Beautiful Graph - AC</h3>
+<p>。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+namespace Fate
+{
+#define mod ( 998244353 )
+
+typedef long long LL;
+
+const int MAXN = 3e5 + 5;
+
+int rint () {
+	int x = 0, f = 1; char c = getchar ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = getchar () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = getchar () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt;
+void wint ( _T x ) {
+	if ( x &lt; 0 )	putchar ( &#39;-&#39; ), x = ~ x + 1;
+	if ( x &gt; 9 )	wint ( x / 10 );
+	putchar ( x % 10 ^ &#39;0&#39; );
+}
+
+struct GraphSet {
+	int to, nx;
+	GraphSet ( int T = 0, int N = 0 ) { to = T, nx = N; }
+} as[MAXN * 2];
+
+int n, m, cnt, vis[MAXN], degin[MAXN], bla, whi;
+
+void makeEdge ( const int u, const int v ) { as[++ cnt] = GraphSet ( v, degin[u] ), degin[u] = cnt; }
+
+bool dfs ( const int u ) {
+	for ( int i = degin[u]; i; i = as[i].nx ) {
+		int v = as[i].to;
+		if ( ~ vis[v] ) {
+			if ( vis[u] == vis[v] )	return 0;
+		}
+		else {
+			vis[v] = vis[u] ^ 1;
+			if ( ! dfs ( v ) )	return 0;
+		}
+	}
+	if ( vis[u] )	bla ++;
+	else	whi ++;
+	return 1;
+}
+
+LL Qkpow ( LL base, int indx ) {
+	LL res = 1;
+	for ( ; indx; indx &gt;&gt;= 1 ) {
+		if ( indx &amp; 1 )	res = res * base % mod;
+		base = base * base % mod;
+	}
+	return res;
+}
+
+void Zero () {
+	int onePun = rint ();
+	while ( onePun -- &gt; 0 ) {
+		n = rint (), m = rint ();
+		for ( int i = 1; i &lt;= n; ++ i )	degin[i] = 0, vis[i] = -1;
+		for ( int i = 1, u, v; i &lt;= m; ++ i ) {
+			u = rint (), v = rint ();
+			makeEdge ( u, v ), makeEdge ( v, u );
+		}
+		LL ans = 1;
+		bool flag = 0;
+		for ( int i = 1; i &lt;= n; ++ i ) {
+			bla = whi = 0;
+			if ( ~ vis[i] )	continue;
+			vis[i] = 1;
+			if ( ! dfs ( i ) ) {
+				flag = 1;
+				wint ( 0 ), putchar ( &#39;\n&#39; );
+				break;
+			}
+			else	ans = ans * ( ( Qkpow ( 2, bla ) + Qkpow ( 2, whi ) ) % mod ) % mod;
+		}
+		if ( ! flag )	wint ( ans ), putchar ( &#39;\n&#39; );
+	}
+}
+}
+
+int main () { Fate :: Zero (); return 0; }
+</code></pre>
+</details>
+
+<h3>CF1355E Restorer Distance</h3>
+<p>有一个基础想法，即一次操作三可以用一次操作一加上一次操作二来实现，然后他又没让我们最小化操作次数，所以我们令 $M=\min{A+R,M}$。</p>
+<p>操作的顺序并不影响，所以为了方便我们可以将原数组排个序。</p>
+<p>感觉花费是一个单峰。</p>
+<p>三分吧。</p>
+<p>过了。</p>
+<p>草。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+typedef long long LL;
+
+const int MAXN = 1e5 + 5;
+
+int rint () {
+	int x = 0, f = 1; char c = getchar ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = getchar () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = getchar () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt;
+void wint ( _T x ) {
+	if ( x &lt; 0 )	putchar ( &#39;-&#39; ), x = ~ x + 1;
+	if ( x &gt; 9 )	wint ( x / 10 );
+	putchar ( x % 10 ^ &#39;0&#39; );
+}
+
+template&lt;typename _T&gt; _T MIN ( const _T x, const _T y ) { return x &lt; y ? x : y; }
+
+int n, cosA, cosR, cosM, a[MAXN];
+
+LL calcPnt ( LL pnt ) {
+	LL sumles = 0, summor = 0;
+	for ( int i = 1; i &lt;= n; ++ i ) {
+		if ( a[i] &lt; pnt )	sumles += pnt - a[i];
+		else	summor += a[i] - pnt;
+	}
+	if ( sumles &lt; summor )	return cosM * sumles + cosR * ( summor - sumles );
+	else	return cosM * summor + cosA * ( sumles - summor );
+}
+
+LL solve ( LL l, LL r ) {
+	while ( l + 1 &lt; r ) {
+		int onemid = l + ( r - l + 1 ) / 3;
+		int anomid = r - ( r - l + 1 ) / 3;
+		if ( calcPnt ( onemid ) &gt; calcPnt ( anomid ) )	l = onemid;
+		else	r = anomid;
+	}
+	return MIN ( calcPnt ( l ), calcPnt ( l + 1 ) );
+}
+
+int main () {
+	n = rint (), cosA = rint (), cosR = rint (), cosM = rint ();
+	cosM = MIN ( cosM, cosA + cosR );
+	for ( int i = 1; i &lt;= n; ++ i )	a[i] = rint ();
+	wint ( solve ( 0, 2e9 ) );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>BalkanOI 2018 Day2 Parentrises</h3>
+<h5>Subtask one</h5>
+<p>看见括号先 $-1+1$，起始时每一个括号先假设成绿色。</p>
+<p>先从左往右扫，如果此时右括号的数量大于了左括号的数量，我们就把序列中最前面的两个右括号分别染成红、蓝色，不足则无解。</p>
+<p>后面懒得写了。</p>
+<h5>Subtask two</h5>
+<p>考虑 DP。</p>
+<p>数据范围感觉区间 DP。</p>
+<p>对不起我没读题。</p>
+<p>重新考虑。</p>
+<p>不会。</p>
+<p>算了看题解。</p>
+<p>贴个链接吧：<a href="https://www.cnblogs.com/klauralee/p/11283704.html">Here</a>。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;queue&gt;
+#include &lt;cstdio&gt;
+#include &lt;cstring&gt;
+
+using namespace std;
+
+int rint () {
+	int x = 0, f = 1; char c = getchar ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = getchar () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;=&#39;9&#39;; c = getchar () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt;
+void wint ( _T x ) {
+	if ( x &lt; 0 )	putchar ( &#39;-&#39; ), x = ~ x + 1;
+	if ( x &gt; 9 )	wint ( x / 10 );
+	putchar ( x % 10 ^ &#39;0&#39; );
+}
+
+template&lt;typename _T&gt; _T MAX ( const _T x, const _T y ) { return x &lt; y ? y : x; }
+
+int Strlen ( char * str ) {
+	int res = 0;
+	for ( ; * ( str ++ ) != &#39;\0&#39;; ++ res ) ;
+	return res;
+}
+
+namespace Greedy {
+const int MAXN = 1e6 + 5;
+
+int n, ans[MAXN], pre[MAXN], suf[MAXN];
+char str[MAXN];
+
+char Trans ( const int x ) { return x == 0 ? &#39;G&#39; : ( x == 1 ? &#39;B&#39; : &#39;R&#39; ); }
+void solving () {
+	queue&lt;int&gt; align;
+	int lst = 0;
+	for ( int i = 1; i &lt;= n + 1; ++ i )	pre[i] = suf[i] = ans[i] = 0;
+	for ( int i = 1; i &lt;= n; ++ i ) {
+		if ( str[i] == &#39;(&#39; )	pre[i] = pre[i - 1] + 1;
+		else	pre[i] = pre[i - 1] - 1, align.push ( i );
+		if ( pre[i] &lt; 0 ) {
+			pre[i] = 0;
+			if ( align.size () &lt; 2u )	return void ( printf ( &quot;impossible\n&quot; ) );
+			ans[align.front ()] = 1, align.pop ();
+			ans[align.front ()] = 2, align.pop ();
+		}
+		if ( ! pre[i] )	lst = i;
+	}
+	if ( pre[n] &gt; 0 ) {
+		for ( int i = n; i &gt; lst; -- i ) {
+			if ( str[i] == &#39;)&#39; )	suf[i] = suf[i + 1] + 1;
+			else	suf[i] = suf[i + 1];
+		}
+		int tmp = pre[n] * 2;
+		for ( int i = n; i &gt; lst; -- i ) {
+			if ( str[i] == &#39;(&#39; ) {
+				if ( tmp &amp; 1 )	ans[i] = 1;
+				else	ans[i] = 2;
+				if ( ( n - suf[i] - i + 2 ) / 2 &gt; suf[i] )	return void ( printf ( &quot;impossible\n&quot; ) );
+				tmp --;
+				if ( ! tmp )	break;
+			}
+		}
+		if ( tmp )	return void ( printf ( &quot;impossible\n&quot; ) );
+	}
+	for ( int i = 1; i &lt;= n; ++ i )	putchar ( Trans ( ans[i] ) );
+	putchar ( &#39;\n&#39; );
+}
+
+void solve () {
+	int TC = rint ();
+	while ( TC -- &gt; 0 )	scanf ( &quot;%s&quot;, str + 1 ), n = Strlen ( str + 1 ), solving ();
+}
+}
+
+namespace Dynamic {
+#define mod ( 1000000007 )
+const int MAXN = 3e2 + 5;
+int n, f[2][MAXN][MAXN * 2], ans[MAXN];
+
+void preSave ( const int lim ) {
+	f[1][0][0] = 1;
+	for ( int i = 0; i &lt;= lim; ++ i ) {
+		memset ( f[i &amp; 1], 0, sizeof ( f[i &amp; 1] ) );
+		for ( int j = 0; j &lt;= i; ++ j ) {
+			for ( int k = 0; k &lt;= ( i &lt;&lt; 1 ); ++ k ) {
+				if ( ( i - j ) * 2 - j - k &gt;= 0 )	( ans[i] += f[( i &amp; 1 ) ^ 1][j][k] ) %= mod;
+				if ( j * 2 - ( i - j ) - 1 &gt;= 0 )	( f[i &amp; 1][j][MAX ( k, ( ( i - j + 1 ) * 2 - j ) )] += f[( i &amp; 1 ) ^ 1][j][k] ) %= mod;
+				( f[i &amp; 1][j + 1][MAX ( k, ( i - j ) * 2 - j - 1 )] += f[( i &amp; 1 ) ^ 1][j][k] ) %= mod;
+			}
+		}
+	}
+}
+
+void solve () {
+	int TC = rint (); preSave ( 3e2 );
+	while ( TC -- &gt; 0 )	n = rint (), wint ( ans[n] ), putchar ( &#39;\n&#39; );
+}
+}
+
+int main () {
+	int subtaskID = rint ();
+	if ( subtaskID == 1 )	Greedy :: solve ();
+	else	Dynamic :: solve ();
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P7100 [w3R1] 团 - AC</h3>
+<p>建虚点。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;queue&gt;
+#include &lt;cstdio&gt;
+#include &lt;cstring&gt;
+
+using namespace std;
+typedef long long LL;
+
+const int MAXN = 1e6 + 5;
+
+int rint () {
+	int x = 0, f = 1; char c = getchar ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = getchar () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = getchar () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt;
+void wint ( _T x ) {
+	if ( x &lt; 0 )	putchar ( &#39;-&#39; ), x = ~ x + 1;
+	if ( x &gt; 9 )	wint ( x / 10 );
+	putchar ( x % 10 ^ &#39;0&#39; );
+}
+
+struct GraphSet {
+	int to, nx;
+	LL wt;
+	GraphSet ( int T = 0, int N = 0, LL W = 0 ) { to = T, nx = N, wt = W; }
+} as[MAXN * 6];
+
+struct PointSet {
+	int pnt;
+	LL wt;
+	PointSet ( int P = 0, LL W = 0 ) { pnt = P, wt = W; }
+	bool operator &lt; ( const PointSet &amp;other ) const { return wt &gt; other.wt; }
+};
+
+int n, k, cnt, bgn[MAXN], vis[MAXN];
+LL dis[MAXN];
+
+void makeEdge ( const int u, const int v, const LL w ) { as[++ cnt] = GraphSet ( v, bgn[u], w ), bgn[u] = cnt; }
+
+void calcSP ( const int S ) {
+	memset ( dis, 0x3f, sizeof ( dis ) );
+	for ( int i = 1; i &lt;= n; ++ i )	dis[i] = 0x3f3f3f3f3f3f3f3fll;
+	priority_queue&lt;PointSet&gt; align;
+	dis[S] = 0, align.push ( PointSet ( S, dis[S] ) );
+	while ( ! align.empty () ) {
+		int u = align.top ().pnt;
+		align.pop ();
+		if ( vis[u] )	continue;
+		vis[u] = 1;
+		for ( int i = bgn[u]; i; i = as[i].nx ) {
+			int v = as[i].to;
+			LL w = as[i].wt;
+			if ( dis[v] &gt; dis[u] + w ) {
+				dis[v] = dis[u] + w;
+				align.push ( PointSet ( v, dis[v] ) );
+			}
+		}
+	}
+}
+
+int main () {
+	n = rint (), k = rint ();
+	for ( int i = 1; i &lt;= k; ++ i ) {
+		int absS = rint ();
+		for ( int j = 1; j &lt;= absS; ++ j ) {
+			int u = rint (), v = rint ();
+			makeEdge ( u, n + i, v );
+			makeEdge ( n + i, u, v );
+		}
+	}
+	calcSP ( 1 );
+	for ( int i = 1; i &lt;= n; ++ i )	wint ( dis[i] ), putchar ( &#39; &#39; );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>CF280D k-Maximum Subsequence Sum - AC</h3>
+<p>做法和 LOC25918 双端队列xLIS问题 一样。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+typedef long long LL;
+
+const int MAXN = 1e5 + 5;
+
+char buf[1 &lt;&lt; 21], * p1 = buf, * p2 = buf;
+#define bufchar ( p1 == p2 &amp;&amp; ( p2 = ( p1 = buf ) + fread ( buf, 1, 1 &lt;&lt; 21, stdin ), p1 == p2 ) ? EOF : * p1 ++ )
+
+int rint () {
+	int x = 0, f = 1; char c = bufchar;
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = bufchar )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = bufchar )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt;
+void wint ( _T x ) {
+	if ( x &lt; 0 )	putchar ( &#39;-&#39; ), x = ~ x + 1;
+	if ( x &gt; 9 )	wint ( x / 10 );
+	putchar ( x % 10 ^ &#39;0&#39; );
+}
+
+template&lt;typename _T&gt; _T MAX ( const _T x, const _T y ) { return x &lt; y ? y : x; }
+template&lt;typename _T&gt; void swapp ( _T &amp;x, _T &amp;y ) { _T w = x; x = y; y = w; }
+
+struct SegmentTree {
+	LL val, dat, p, s;
+	int l, r, pl, pr, sl, sr;
+	SegmentTree ( LL V = 0, LL D = 0, LL P = 0, LL S = 0,
+			int L = 0, int R = 0, int Pl = 0, int Pr = 0, int Sl = 0, int Sr = 0 ) {
+				val = V, dat = D, p = P, s = S, l = L, r = R, pl = Pl, pr = Pr, sl = Sl, sr = Sr; }
+} nodes[MAXN * 4][2];
+
+int n, m, a[MAXN], opl[MAXN], opr[MAXN];
+bool tag[MAXN * 4];
+
+SegmentTree merge ( const SegmentTree lch, const SegmentTree rch ) {
+	SegmentTree ret;
+	ret.val = lch.val + rch.val;
+	ret.p = MAX ( lch.p, lch.val + rch.p );
+	if ( ret.p == lch.p )	ret.pl = lch.pl, ret.pr = lch.pr;
+	else	ret.pl = lch.pl, ret.pr = rch.pr;
+	ret.s = MAX ( rch.s, rch.val + lch.s );
+	if ( ret.s == rch.s )	ret.sl = rch.sl, ret.sr = rch.sr;
+	else	ret.sl = lch.sl, ret.sr = rch.sr;
+	ret.dat = MAX ( lch.s + rch.p, MAX ( lch.dat, rch.dat ) );
+	if ( ret.dat == lch.dat )	ret.l = lch.l, ret.r = lch.r;
+	else if ( ret.dat == rch.dat )	ret.l = rch.l, ret.r = rch.r;
+	else	ret.l = lch.sl, ret.r = rch.pr;
+	return ret;
+}
+
+void Upt ( const int x ) {
+	nodes[x][0] = merge ( nodes[x &lt;&lt; 1][0], nodes[x &lt;&lt; 1 | 1][0] );
+	nodes[x][1] = merge ( nodes[x &lt;&lt; 1][1], nodes[x &lt;&lt; 1 | 1][1] );
+}
+
+void Spr ( const int x ) {
+	if ( ! tag[x] )	return;
+	swapp ( nodes[x &lt;&lt; 1][0], nodes[x &lt;&lt; 1][1] );
+	swapp ( nodes[x &lt;&lt; 1 | 1][0], nodes[x &lt;&lt; 1 | 1][1] );
+	tag[x &lt;&lt; 1] ^= 1, tag[x &lt;&lt; 1 | 1] ^= 1, tag[x] = 0;
+}
+
+void build ( const int x, const int l, const int r ) {
+	if ( l == r ) {
+		nodes[x][0] = SegmentTree ( a[l], a[l], a[l], a[l], l, l, l, l, l, l );
+		nodes[x][1] = SegmentTree ( -a[l], -a[l], -a[l], -a[l], l, l, l, l, l, l );
+		return;
+	}
+	int mid = ( l + r ) &gt;&gt; 1;
+	build ( x &lt;&lt; 1, l, mid );
+	build ( x &lt;&lt; 1 | 1, mid + 1, r );
+	Upt ( x );
+}
+
+void modifyRV ( const int x, const int l, const int r, const int segL, const int segR ) {
+	if ( l &gt; segR || r &lt; segL )	return;
+	if ( l &gt;= segL &amp;&amp; r &lt;= segR ) {
+		swapp ( nodes[x][0], nodes[x][1] );
+		tag[x] ^= 1;
+		return;
+	}
+	int mid = ( l + r ) &gt;&gt; 1;
+	Spr ( x );
+	modifyRV ( x &lt;&lt; 1, l, mid, segL, segR );
+	modifyRV ( x &lt;&lt; 1 | 1, mid + 1, r, segL, segR );
+	Upt ( x );
+}
+
+void modifyPT ( const int x, const int l, const int r, const int segP, const int segW ) {
+	if ( l == r ) {
+		nodes[x][0] = SegmentTree ( segW, segW, segW, segW, l, l, l, l, l, l );
+		nodes[x][1] = SegmentTree ( -segW, -segW, -segW, -segW, l, l, l, l, l, l );
+		return;
+	}
+	int mid = ( l + r ) &gt;&gt; 1;
+	Spr ( x );
+	if ( mid &gt;= segP )	modifyPT ( x &lt;&lt; 1, l, mid, segP, segW );
+	else	modifyPT ( x &lt;&lt; 1 | 1, mid + 1, r, segP, segW );
+	Upt ( x );
+}
+
+SegmentTree query ( const int x, const int l, const int r, const int segL, const int segR ) {
+	if ( l &gt; segR || r &lt; segL )	return SegmentTree ();
+	if ( l &gt;= segL &amp;&amp; r &lt;= segR )	return nodes[x][0];
+	int mid = ( l + r ) &gt;&gt; 1;
+	Spr ( x );
+	return merge ( query ( x &lt;&lt; 1, l, mid, segL, segR ), query ( x &lt;&lt; 1 | 1, mid + 1, r, segL, segR ) );
+}
+
+int main () {
+	n = rint ();
+	for ( int i = 1; i &lt;= n; ++ i )	a[i] = rint ();
+	build ( 1, 1, n );
+	m = rint ();
+	while ( m -- &gt; 0 ) {
+		int opt = rint ();
+		if ( ! opt ) {
+			int pos = rint (), val = rint ();
+			modifyPT ( 1, 1, n, pos, val );
+		}
+		else {
+			int l = rint (), r = rint (), k = rint (), top = 0;
+			LL res = 0;
+			while ( k -- &gt; 0 ) {
+				SegmentTree ret = query ( 1, 1, n, l, r );
+				if ( ret.dat &lt; 0 )	break;
+				modifyRV ( 1, 1, n, ret.l, ret.r );
+				top ++;
+				opl[top] = ret.l, opr[top] = ret.r;
+				res += ret.dat;
+			} 
+			for ( ; top; top -- )	modifyRV ( 1, 1, n, opl[top], opr[top] );
+			wint ( res ), putchar ( &#39;\n&#39; );
+		}
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>CF120F Spiders</h3>
+<p>把每棵树的直径拼在一起。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#include &lt;cstring&gt;
+
+const int MAXN = 1e2 + 5;
+
+int rint () {
+	int x = 0, f = 1; char c = getchar ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = getchar () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = getchar () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt;
+void wint ( _T x ) {
+	if ( x &lt; 0 )	putchar ( &#39;-&#39; ), x = ~ x + 1;
+	if ( x &gt; 9 )	wint ( x / 10 );
+	putchar ( x % 10 ^ &#39;0&#39; );
+}
+
+template&lt;typename _T&gt; _T MAX ( const _T x, const _T y ) { return x &lt; y ? y : x; }
+
+struct GraphSet {
+	int to, nx;
+	GraphSet ( int T = 0, int N = 0 ) { to = T, nx = N; }
+} as[MAXN * 2];
+
+int n, f[MAXN][2], bgn[MAXN], cnt;
+
+void makeEdge ( const int u, const int v ) { as[++ cnt] = GraphSet ( v, bgn[u] ), bgn[u] = cnt; }
+
+void dfs ( const int u, const int lst ) {
+	int oneval = 0, anoval = 0;
+	for ( int i = bgn[u]; i; i = as[i].nx ) {
+		int v = as[i].to;
+		if ( v == lst )	continue;
+		dfs ( v, u );
+		f[u][0] = MAX ( f[u][0], f[v][0] + 1 );
+		if ( f[v][0] + 1 &gt; oneval )	anoval = oneval, oneval = f[v][0] + 1;
+		else if ( f[v][0] + 1 &gt; anoval )	anoval = f[v][0] + 1;
+	}
+	f[u][1] = MAX ( oneval + anoval, MAX ( oneval, anoval ) );
+}
+
+int main () {
+	freopen ( &quot;input.txt&quot;, &quot;r&quot;, stdin );
+	freopen ( &quot;output.txt&quot;, &quot;w&quot;, stdout );
+	n = rint ();
+	int ans = 0;
+	for ( int i = 1; i &lt;= n; ++ i ) {
+		int nod = rint ();
+		for ( int i = 1; i &lt; nod; ++ i ) {
+			int u = rint (), v = rint ();
+			makeEdge ( u, v ), makeEdge ( v, u );
+		}
+		dfs ( 1, 0 );
+		int ret = 0;
+		for ( int i = 1; i &lt;= nod; ++ i )	ret = MAX ( ret, f[i][1] );
+		ans += ret;
+		for ( int i = 1; i &lt;= nod; ++ i )	bgn[i] = f[i][0] = f[i][1] = 0;
+		cnt = 0;
+	}
+	wint ( ans ), putchar ( &#39;\n&#39; );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P6274 [eJOI2017]六 - IP</h3>
+<p>最多一个数与 $x$ 不互质，其他数都与 $x$ 互质，这样读起来舒服一点。</p>
+<p>大概能猜出来是状压，设 $N$ 的质因数集合为 $S^{(N)}$，有 $|S^{(N)}|\le 6$。</p>
+<p>基本想法，设 $f_{S}$ 表示当前加入的数（设为 $x$）为 $S^{(N)}$ 中的数的倍数情况。如果 $S^{N}<em>{i}\mid x$，则有 $S</em>{i}=1$，否则为 $0$。</p>
+<details>
+
+<pre><code class="language-cpp">// 寂寞
+</code></pre>
+</details>
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Note -「Li Chao Tree」2 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Note -「Li Chao Tree」2</h1><p>一年前写过一篇 <a href="https://www.luogu.com.cn/blog/161849/note-li-chao-tree">note-li-chao-tree</a>。现在来看，写的什么激霸。</p>
+<p>补充一下，仅只对左右端点做判断的做法是错的，错误的原因涉及到李超树不同于普通线段树的地方。</p>
+<p>李超树维护的是一个 lazy propagation，他把一般线段树上要维护的幺半群信息放到了函数上，所以如果只判断左右端点，是会导致标记更新不对劲。</p>
+<p>今天 wa 了半天才意识到，，，</p>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

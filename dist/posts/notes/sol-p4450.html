@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「P4450」双亲数 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「P4450」双亲数</h1><p>人生第一道莫比乌斯反演题，写写题解吧</p>
+<p>如果markdown有锅请移步至<a href="https://beyondmyself.blog.luogu.org/ti-xie-p4450-shuang-qing-shuo-post">这里</a></p>
+<p>定义</p>
+<p>题目让我们求</p>
+<p>$
+\sum_{a=1}^{A}\sum_{b=1}^{B}[\gcd(a\in A,b\in B)=d]
+$</p>
+<p>显然，我们可以采用莫比乌斯反演的方式来求出这个式子</p>
+<p>我们可以记</p>
+<p>$
+f(x)=\begin{cases}1\ \ \ (x=d)\\ 0\ \ \ (x\ne d)\end{cases}
+$</p>
+<p>也就是说，我们需要找到$g$且$f=g\times 1$，即</p>
+<p>$
+f(x)=\sum_{k\mid x}g(x)
+$</p>
+<p>又因为1的逆为$\mu$，所以我们可以得出以下结论</p>
+<p>$
+\begin{cases}g=f\times\mu\
+\
+\displaystyle
+\displaystyle g(x)=\sum_{k\mid x}\mu(\frac{x}{k})[k=d]\
+\displaystyle g(x)=\mu(\frac{x}{d})[d\mid x]\end{cases}
+$</p>
+<p>也就是说，我们可以通过化简得到以下的式子</p>
+<p>$
+\sum_{k=1}^{\min(A,B)}g(k)\lfloor \frac{A}{k}\rfloor\times \lfloor\frac{B}{k}\rfloor
+$</p>
+<p>然后我们就可以通过数论分块的方法求出这个式子了</p>
+<p>至于$g$，我们可以用线性筛把$\mu$筛出来，再前缀和即可</p>
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#include &lt;iostream&gt;
+#include &lt;algorithm&gt;
+#include &lt;cstring&gt;
+#include &lt;queue&gt;
+#include &lt;cmath&gt;
+#define int long long
+
+using namespace std;
+
+namespace MAIN {
+    const int SIZE = 1000000 + 5;
+    int a, b, d, tot, ans, primes[SIZE];
+    int Mobius[SIZE], tag[SIZE];
+
+    inline void MAIN() {
+        scanf(&quot;%lld %lld %lld&quot;, &amp;a, &amp;b, &amp;d);
+        Mobius[1] = 1;
+        for (int i = 2; i &lt;= max(a, b); ++i) { // 线性筛
+            if (!tag[i]) primes[++tot] = i, Mobius[i] = -1;
+            for (int j = 1; j &lt;= tot; ++j) {
+                if (i * primes[j] &gt; max(a, b)) break;
+                tag[i * primes[j]] = 1;
+                if (!(i % primes[j])) {
+                    Mobius[i * primes[j]] = 0;
+                    break;
+                }
+                Mobius[i * primes[j]] = -Mobius[i];
+            }
+        }
+        for (int i = d; i &lt;= min(a, b); i += d) ans += Mobius[i / d] * (a / i) * (b / i);
+        printf(&quot;%lld\n&quot;, ans);
+    }
+} // namespace MAIN
+
+signed main() {
+    MAIN::MAIN();
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

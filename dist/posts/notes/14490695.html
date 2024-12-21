@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「BalticOI 2004」Sequence | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「BalticOI 2004」Sequence</h1><h2>Description</h2>
+<p><a href="http://222.180.160.110:1024/problem/28828">Link</a>.</p>
+<p>Given is a sequencen $A$ of $n$ intergers.</p>
+<p>Construct a stricly increasing sequence $B$ of $n$ intergers that makes the sum of $|B_{i}-A_{i}|$ the smallest.</p>
+<h2>Solution</h2>
+<p>First, we make $a_{i}:=a_{i}-i$. Then we just make &quot;strictly increasing&quot; become &quot;unstrictly increasing&quot;.</p>
+<ol>
+<li><p>for $a_{1}\le a_{2}\le\cdots\le a_{n}$:</p>
+<p> When $B$ is the same as $A$, it gets the minimum answer.</p>
+</li>
+<li><p>for $a_{1}\ge a_{2}\ge\cdots\ge a_{n}$:</p>
+<p> When for each $i$, $B_{i}=A_{\lfloor\frac{n}{2}\rfloor}$, it gets the minimum answer.</p>
+</li>
+</ol>
+<p>Maybe we can divide $A$ into m parts.</p>
+<p>Such like: $[l_{1},r_{1}],\cdots,[l_{m},r_{m}]$</p>
+<p>that satisfies: for each $i$, sequence $A[l_{i},r_{i}]$ is unstrictly increasing/decreasing.</p>
+<p>So we can get the answer to each interval.</p>
+<p>Let&#39;s consider how to merge the answers.</p>
+<p>When we&#39;re merging two intervals, we can just get the new median of the two intervals.</p>
+<hr>
+<p>So things above are just bullshit.</p>
+<p>Parallel Searching!</p>
+<p>FUCK YOU.</p>
+<pre><code class="language-cpp">#include&lt;bits/stdc++.h&gt;
+using namespace std;
+typedef long long LL;
+const LL INF=1e18;
+int n;
+LL a[1000010],b[1000010],ans;
+void solve(LL l,LL r,int fr,int ba)
+{
+	if(l&gt;=r||fr&gt;ba)	return;
+	LL mid=(l+r)&gt;&gt;1,tmp=0,mn=INF,pos=0;
+	for(int i=fr;i&lt;=ba;++i)	tmp+=abs(a[i]-mid-1);
+	mn=tmp,pos=fr-1;
+	for(int i=fr;i&lt;=ba;++i)
+	{
+		tmp-=abs(a[i]-mid-1);
+		tmp+=abs(a[i]-mid);
+		if(tmp&lt;mn)	mn=tmp,pos=i;
+	}
+	for(int i=fr;i&lt;=pos;++i)	b[i]=mid;
+	for(int i=pos+1;i&lt;=ba;++i)	b[i]=mid+1;
+	solve(l,mid,fr,pos),solve(mid+1,r,pos+1,ba);
+}
+int main()
+{
+	scanf(&quot;%d&quot;,&amp;n);
+	for(int i=1;i&lt;=n;++i)	scanf(&quot;%lld&quot;,&amp;a[i]),a[i]-=i;
+	solve(-INF,INF,1,n);
+	for(int i=1;i&lt;=n;++i)	ans+=abs(a[i]-b[i]);
+	printf(&quot;%lld\n&quot;,ans);
+	for(int i=1;i&lt;=n;++i)	printf(&quot;%lld &quot;,b[i]+i);
+	return 0;
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

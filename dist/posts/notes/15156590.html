@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Note -「Primitive Root」 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Note -「Primitive Root」</h1><h2>阶（multiplicative order）</h2>
+<blockquote>
+<p> $\textbf{Def.}$：$\delta_m(a)$ 为最小的 $n$ 使得 $a^n\equiv 1\pmod m$，其中 $(a,m)=1$。</p>
+</blockquote>
+<blockquote>
+<p> Observation 1：$\boxed{a^0\not\equiv a^1\not\equiv\dots\not\equiv a^{\delta_m(a)-1}\pmod m}$。</p>
+</blockquote>
+<p>$\textbf{Proof}$：若 $\exists i,j,s.t.0\leqslant i&lt;j&lt;\delta_m(a),a^i\equiv a^j\pmod m$，则 $a^{i-j}\equiv 1\pmod m$，又 $i-j&lt;\delta_m(a)$，矛盾。</p>
+<p>$\blacksquare$</p>
+<blockquote>
+<p>Observation 2：$\boxed{\delta_m(a)\mid\varphi(m)}$。</p>
+</blockquote>
+<p>$\textbf{Proof}$：由欧拉定理： $a^{\varphi(m)}\equiv 1\pmod m$，因为 $1^x=1$，所以如果存在 $x_0$ 使得 $a^{x_0}\equiv 1\pmod m$，那么 $x_0$ 倍数也一定可以，也就是说存在周期性，所以 $\delta_m(a)\mid\varphi(m)$。BTW，同时也有若 $a^n\equiv 1\pmod m$，则 $\delta_m(a)\mid n$。</p>
+<p>$\blacksquare$</p>
+<p>顺便可以知道若 $a^p\equiv a^q\pmod m$，则 $p\equiv q\pmod{\delta_m(a)}$。</p>
+<blockquote>
+<p>Lemma 1：设 $m\in\mathbb{N}^*$，$a,b\in\mathbb{Z}$，$(a,m)=(b,m)=1$，则 $\boxed{\delta_m(ab)=\delta_m(a)\delta_m(b)}$ 的重要条件是 $(\delta_m(a),\delta_m(b))=1$。</p>
+</blockquote>
+<p>$\textbf{Proof}$：<a href="https://oi-wiki.net/math/number-theory/primitive-root/#_3">略，具体见此处。</a></p>
+<blockquote>
+<p>Lemma 2：设 $k\in\mathbb{N}$，$m\in\mathbb{N}^*$，$a\in\mathbb{Z}$，$(a,m)=1$，则 $\boxed{\delta_m(a^k)=\frac{\delta_m(a)}{(\delta_m(a),k)}}$。</p>
+</blockquote>
+<p>$\textbf{Proof}$：<a href="https://oi-wiki.net/math/number-theory/primitive-root/#_3">略，具体见此处。</a></p>
+<h2>原根（primitive root）</h2>
+<blockquote>
+<p>$\textbf{Def.}$：对于 $(a,m)=1$，若 $\delta_m(a)=\varphi(m)$，则称 $a$ 是模 $m$ 的原根。</p>
+</blockquote>
+<blockquote>
+<p>Lemma 1（判定定理）：设 $m\geqslant3$，$(a,m)=1$，则 $a$ 为模 $m$ 的原根当且仅当 $\boxed{\forall p\in\mathbb{P},p\mid\varphi(m),a^{\frac{\varphi(m)}{p}}\not\equiv1\pmod m}$。</p>
+</blockquote>
+<p>$\textbf{Proof}$：<a href="https://oi-wiki.net/math/number-theory/primitive-root/#_5">必要性显然，充分性证明见此处。</a></p>
+<blockquote>
+<p>Lemma 2（数量定理）：若 $m$ 存在原根，则其原根数量为 $\boxed{\varphi(\varphi(m))}$。</p>
+</blockquote>
+<p>$\textbf{Proof}$：<a href="https://oi-wiki.net/math/number-theory/primitive-root/#_6">略，具体见此处。</a></p>
+<blockquote>
+<p>Lemma 3（存在定理）：$m$ 存在原根当且仅当 $\boxed{m=2,4,p^\alpha,2p^\alpha}$，其中 $p$ 为奇素数，$a\in\mathbb{N}^*$。</p>
+</blockquote>
+<p>$\textbf{Proof}$：<a href="https://oi-wiki.net/math/number-theory/primitive-root/#_7">略，具体见此处。</a></p>
+<p>若 $m$ 存在原根，则最小原根 $\leqslant m^\frac{1}{4}$。</p>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「CQOI 2007」余数求和 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「CQOI 2007」余数求和</h1><h1>前置知识：整除分块</h1>
+<p>整除分块就是:</p>
+<p>$
+\sum_{i=1}^{n}\lfloor \frac{k}{i} \rfloor
+$</p>
+<p>这道题让我们求</p>
+<p>$
+\sum_{i=1}^{n}k\ mod\ i
+$</p>
+<p>这个式子可以写成这样</p>
+<p>$
+\sum_{i=1}^{n}k-\lfloor\frac{k}{i}\rfloor\times i
+$</p>
+<p>$
+n\times k-\sum_{i=1}^{n}\lfloor\frac{k}{i}\rfloor\times i 
+$</p>
+<p>我们知道对于每一个整除分块</p>
+<p>$
+\sum_{i=l}^{r}\lfloor \frac{k}{i} \rfloor
+$</p>
+<p>中的值都是一样的，所以我们可以设$\ T=\lfloor \frac{k}{i} \rfloor$</p>
+<p>这个式子就变成了</p>
+<p>$
+\sum_{i=l}^{r}T\times i
+$</p>
+<p>$
+\sum_{i=l}^{r}T\times\sum_{i=l}^{r}i
+$</p>
+<p>至此，我们可以在$\Omega(\sqrt{N})$的时间内用整除分块解决问题</p>
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#define int long long
+
+template &lt; typename T&gt;
+inline T getmin(T x, T y) { return x &gt; y ? y : x; }
+
+signed main() {
+	long long n, k, ans = 0;
+	scanf(&quot;%lld %lld&quot;, &amp;n, &amp;k);
+	for (long long l = 1, r = 0, t; l &lt;= n; l = r + 1) r = (t = k / l) ? getmin(k / t, n) : n, ans -= t * (r - l + 1) * (l + r) &gt;&gt; 1;
+	printf(&quot;%lld\n&quot;, ans = ans + n * k);
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

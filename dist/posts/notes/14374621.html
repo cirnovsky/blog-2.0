@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Note -「Strings」 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Note -「Strings」</h1><p>看了 tly 的 blog 挺有感触的，于是决定把难学难懂（至少对于我这种较钝的人来说）的字符串算法进行梳理与总结（也有新知，有了新的认识会重写）。</p>
+<p>这是个长期计划，希望不会咕。</p>
+<h2>Part. 0 用语</h2>
+<h3>Part. 0-1 符号</h3>
+<p>定义字符串 $A,B$（从 $1$ 开始编号，以 C++ 的 <code>char*</code> 来理解吧）。</p>
+<ul>
+<li>$|A|$：字符串 $A$ 的长度。</li>
+<li>$A\sqsubset B$： $A$ 为 $B$ 前缀。</li>
+<li>$A\sqsupset B$： $A$ 为 $B$ 后缀。</li>
+<li>$A=B_{|A|}$：同 $A\sqsubset B$。</li>
+<li>$A=B_{-|A|}$：同 $A\sqsupset B$。</li>
+<li>$A[l,r]$：$A$ 的 $[l,r]$ 子串。</li>
+<li>$A_{1}\cdots A_{n}$：将 $n$ 个字符串 $A_{i}$ 拼接起来。</li>
+<li>$A^{k}$：把 $k$ 个 $A$ 拼接起来。</li>
+</ul>
+<h3>Part. 0-2 用语</h3>
+<ul>
+<li>Border：</li>
+</ul>
+<h2>Part. 1 KMP</h2>
+<h3>Part. 1-1 KMP 的内容</h3>
+<p>说一下所谓 next 数组的本质：所有前缀的最大 border。</p>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

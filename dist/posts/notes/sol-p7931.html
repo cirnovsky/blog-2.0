@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「COCI 2021-2022 #1」Volontiranje | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「COCI 2021-2022 #1」Volontiranje</h1><p>哲学题。</p>
+<p>以下标为横轴，$p_i$ 为纵轴，画出一个坐标系。然后你会发现每个点的后继在其右上方，以此为依据来分层（具体来说，就是求出每个位置的 LIS）。</p>
+<p>我毛了张图给你看啊：</p>
+<p><img src="/posts/sol-p7931/image.png" alt="">。</p>
+<p>然后在每层搞事情。这里有个结论：</p>
+<blockquote>
+<p><strong>Claim</strong>：存在一种选择 LISs 的方案，使得每个 LIS 都不交叉。</p>
+</blockquote>
+<p>证明应该不难吧，因为每两个之间交换了没有影响，每层都看得到。那么选择下标更小的点一定<del>苏卡</del>不劣。然后优化下搜索的方式就可以解决了，这个具体看代码。</p>
+<pre><code class="language-cpp">int n,a[1000100],fwt[1000100],dp[1000100],st[1000100],ed[1000100],q[1000100],lis,ans,lst[1000100];
+vector&lt;int&gt; rec;
+void Add(int x,const int w) { for(; x&lt;=n; x+=x&amp;-x)	cmax(fwt[x],w); }
+int Sum(int x) { int res=0; for(; x; x^=x&amp;-x)	cmax(res,fwt[x]); return res; }
+void digger() {
+	printf(&quot;%d %d\n&quot;,ans,lis);
+	for(int i=1; i&lt;=ans; ++i) {
+		for(int j=(i-1)*lis+1; j&lt;=i*lis; ++j)	printf(&quot;%d &quot;,rec[j-1]);
+		puts(&quot;&quot;);
+	}
+	exit(0);
+}
+signed main() {
+	n=read();
+	for(int i=1; i&lt;=n; ++i) {
+		dp[i]=Sum((a[i]=read())-1)+1;
+		Add(a[i],dp[i]),cmax(lis,dp[i]);
+		ed[dp[i]]++;
+	}
+	for(int i=1; i&lt;=n; ++i)	ed[i]+=ed[i-1],st[i]=ed[i];
+	for(int i=n; i; --i)	q[st[dp[i]]--]=i;
+	for(int i=1; i&lt;=n; ++i)	st[i]=ed[i-1]+1;
+	for(int i=1; i&lt;=n; ++i)	sort(q+st[i],q+ed[i]+1);
+	while(233) {
+		for(int i=1; i&lt;=lis; ++i) { // enumrating layers
+			if(st[i]&gt;ed[i])	digger();
+			if(a[q[st[i]]]&lt;a[lst[i-1]]) {
+				----i; st[i+1]++;
+				continue;
+			}
+			while(q[st[i]]&lt;lst[i-1] &amp;&amp; st[i]&lt;=ed[i]) {
+				st[i]++;
+				if(a[q[st[i]]]&lt;a[lst[i-1]]) {
+					----i; st[i+1]++;
+					goto Suc;
+				}
+			}
+			if(st[i]&gt;ed[i])	digger();
+			lst[i]=q[st[i]];
+			Suc:;
+		}
+		for(int i=1; i&lt;=lis; ++i)	rec.push_back(lst[i]),st[i]++;
+		ans++;
+	}
+	return 0;
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

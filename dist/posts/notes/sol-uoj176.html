@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「UOJ 176」新年的繁荣 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「UOJ 176」新年的繁荣</h1><p><a href="https://uoj.ac/problem/176">link。</a></p>
+<p>文章抄袭于 <a href="https://blog.csdn.net/qq_42101694/article/details/104065299">曾经的 cq 之光</a>。</p>
+<p>先咕了，睡觉比较重要。</p>
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;numeric&gt;
+#define rep(i,l,r) for (int i=l;i&lt;=(r);++i)
+#define drep(i,r,l) for (int i=(r);i&gt;=(l);--i)\r\ninline int read() {
+        int n = 0, f = 1;
+    char s;
+    for (; s&lt;\&#39;0\&#39;||s&gt;\&#39;9\&#39;; s=getchar())
+        if (s == \&#39;-\&#39;) f = -1;
+    for (; s&gt;=\&#39;0\&#39;&amp;&amp;s&lt;=\&#39;9\&#39;; s=getchar())
+        n = n*10+s-48;
+    return n*f;
+}
+
+const int kMaxN = 1&lt;&lt;18;\r\nint n, m, a[kMaxN], f[kMaxN];
+
+namespace ufs {
+        int fa[kMaxN];
+    void init(int n) {
+            std::iota(fa+1, fa+n+1, 1);
+    }
+    inline int find(int u) {
+            while (u != fa[u])
+            u = fa[u] = fa[fa[u]];
+        return u;
+    }
+    bool merge(int u, int v) {
+            u = find(u), v = find(v);
+        if (u != v) {
+                fa[u] = v;
+            return 1;
+        }
+        return 0;
+    }
+}
+
+signed main() {
+        n = read(), m = read();
+    ufs::init((1&lt;&lt;m)-1);
+    long long ans;
+    rep(i,1,n) {
+            a[i] = read();
+        if (!f[a[i]]) f[a[i]] = a[i];
+        else ans += a[i];
+    }
+    drep(i,(1&lt;&lt;m)-1,0) {
+            for (int j=0; j&lt;m&amp;&amp;(!f[i]); ++j)
+            f[i] = f[i|(1&lt;&lt;j)];
+        rep(j,0,m-1)
+            if (f[i] &amp;&amp; !(i&gt;&gt;j&amp;1) &amp;&amp; f[i|(1&lt;&lt;j)] &amp;&amp;
+                ufs::merge(f[i], f[i|(1&lt;&lt;j)]))
+                ans += i;
+    }
+    printf(\&quot;%lld\\n\&quot;, ans);
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「P4525」自适应辛普森法 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「P4525」自适应辛普森法</h1><p>题目让我们求:</p>
+<p>$
+\int_{L}^{R}\frac{cx+d}{ax+b}dx
+$</p>
+<p>我记得OJ里TR发过有关自适应辛普森法的帖子，但我没看懂。于是我试着推了一下，就推出了</p>
+<p>这样的式子</p>
+<p>定义</p>
+<p>$
+F_x(x)=\frac{x\times c}{a}+(\frac{d}{a}-\frac{c\times b}{a^2}\times\mathrm{ln}|x\times a+b|)
+$</p>
+<p>$
+F_y(x)=\frac{\frac{x^2\times c}{b}}{2} + \frac{d\times x}{b}
+$</p>
+<p>有</p>
+<p>$
+\int_{L}^{R}\frac{cx+d}{ax+b}dx=\begin{cases} F_x(R)-F_x(L),a\neq 0 \
+\displaystyle
+F_y(R)-F_y(L),a=0 \end{cases}
+$</p>
+<p>代码(极短):</p>
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#include &lt;cmath&gt;
+#define fx(x) (x * c / a + (d / a - c * b / (a * a)) * log(fabs(x * a + b)))
+#define fy(x) (x * x * c / b / 2 + d * x / b)
+
+
+signed main() {
+	long double l, r, a, b, c, d;
+    scanf(&quot;%Lf %Lf %Lf %Lf %Lf %Lf&quot;, &amp;a, &amp;b, &amp;c, &amp;d, &amp;l, &amp;r);
+    if (a == 0.0) printf(&quot;%.6Lf\n&quot;, fy(r) - fy(l));
+    else printf(&quot;%.6Lf&quot;, fx(r) - fx(l));
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

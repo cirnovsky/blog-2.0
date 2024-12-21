@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「CF 1674F」Madoka and Laziness | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「CF 1674F」Madoka and Laziness</h1><p><a href="https://codeforces.com/problemset/problem/1647/F">link。</a></p>
+<p>如果做过 <a href="https://codeforces.com/problemset/problem/1144/G"><em>codeforces - 1144G</em></a> 那这题最多 *2200。</p>
+<p>序列中的最大值必然为其中一个拐点，不妨设 $a_p = a_\max$，先讨论另一个拐点 $i$ 在 $p$ 左侧的情况。于是问题转化为规划 $[1, i)$，$(i, p)$，$(p, n]$ 几个区间中的数给 $i$ 还是给 $p$。</p>
+<ul>
+<li><p>对于 $[1, i)$，令 $dp[i]$ 表示将 $[1, i]$ 分为两个 strictly increasing subsequence，其中不以 $i$ 结尾的 subsequence 的结尾元素的最小值，分讨转移即可。</p>
+</li>
+<li><p>对于 $(i, p)$，同 <a href="https://codeforces.com/problemset/problem/1144/G"><em>codeforces - 1144G</em></a>，which is 这题唯一的难点。</p>
+</li>
+<li><p>对于 $(p, n]$，同情况 1。</p>
+</li>
+</ul>
+<p>不太会写代码，，，参考了下 editorial，，，</p>
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+#define cm(x, y) x = min(x, y)
+#define cm2(x, y) x = max(x, y)
+using namespace std;
+int n, a[500100], pos, dp[500100], dp2[500100], dp3[500100][2];
+int solve() {
+    pos = n;
+    for (int i=0; i&lt;n; ++i) {
+        if (a[i] &gt; a[pos]) {
+            pos = i;
+        }
+    }
+    dp[0] = -1;
+    for (int i=1; i&lt;=pos; ++i) {
+        dp[i] = 1e9;
+        if (a[i] &gt; dp[i-1]) {
+            cm(dp[i], a[i-1]);
+        }
+        if (a[i] &gt; a[i-1]) {
+            cm(dp[i], dp[i-1]);
+        }
+    }
+    dp2[n-1] = -1;
+    for (int i = n-2; i&gt;=pos; --i) {
+        dp2[i] = 1e9;
+        if (a[i] &gt; dp2[i+1]) {
+            cm(dp2[i], a[i+1]);
+        }
+        if (a[i] &gt; a[i+1]) {
+            cm(dp2[i], dp2[i+1]);
+        }
+    }
+    int res = 0;
+    dp3[pos][0] = dp[pos];
+    for (int i=pos+1; i&lt;n; ++i) {
+        dp3[i][0] = 1e9;
+        dp3[i][1] = -1e9;
+        if (a[i-1] &gt; a[i]) {
+            cm(dp3[i][0], dp3[i-1][0]);
+        }
+        if (dp3[i-1][1] &gt; a[i]) {
+            cm(dp3[i][0], a[i-1]);
+        }
+        if (a[i-1] &lt; a[i]) {
+            cm2(dp3[i][1], dp3[i-1][1]);
+        }
+        if (dp3[i-1][0] &lt; a[i]) {
+            cm2(dp3[i][1], a[i-1]);
+        }
+        res += dp3[i][1] &gt; dp2[i];
+    }
+    return res;
+}
+signed main() {
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    cin &gt;&gt; n;
+    for (int i=0; i&lt;n; ++i) {
+        cin &gt;&gt; a[i];
+    }
+    int ret = solve();
+    reverse(a, a+n);
+    cout &lt;&lt; ret+solve() &lt;&lt; &quot;\n&quot;;
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

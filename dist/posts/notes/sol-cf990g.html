@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「CF 990G」GCD Counting | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「CF 990G」GCD Counting</h1><p>构造函数 $ans(x)$，$f(x)$ 分别表示 $\gcd$ 为 $x$ 的链数和链 $\gcd$ 有 $x$ 因子的链数，于是 $f(x)=\sum\limits_{d\mid x}ans(d)$，由莫比乌斯反演得 $ans(x)=\sum\limits_{x|d}f(d)\mu(\frac{d}{x})$。</p>
+<p>把每一个点权为 $x$ 的倍数的点拉出来，跑出各连通块大小可以平凡算出 $f(x)$。</p>
+<p>但是 $ans(x)$ 的计算一定需要莫反么？</p>
+<p><a href="https://paste.ubuntu.com/p/M4jTRPnC5q/">代码给出的是容斥做法，via cqbzly。</a></p>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

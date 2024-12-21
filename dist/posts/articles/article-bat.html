@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>常用 Bat 脚本 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>常用 Bat 脚本</h1><h1>1.批量换后缀</h1>
+<pre><code class="language-bat">ren *.txt *.cpp
+</code></pre>
+<p>(将.txt和.cpp换成自己的后缀即可)</p>
+<h1>2.批量替换文件名中的某些字符</h1>
+<pre><code class="language-bat">@echo off
+setlocal enabledelayedexpansion
+for %%j in (*_*) do (
+set filename=%%~nj
+set filename=!filename:.=_!
+set filename=!filename: =!
+if not &quot;!filename!&quot;==&quot;%%~nj&quot; ren &quot;%%j&quot; &quot;!filename!%%~xj&quot;
+)
+</code></pre>
+<p>(自己替换)</p>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

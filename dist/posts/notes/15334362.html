@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「CF 868F」Yet Another Minimization Problem | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「CF 868F」Yet Another Minimization Problem</h1><p><a href="http://codeforces.com/problemset/problem/868/F">link。</a></p>
+<p>值域分治优化决策单调性 DP 的 trick。朴素做法 trivial，不赘述。</p>
+<p>考虑求取一个区间 $[l,r]$ 的 DP 值。先搞定在 $m=\lfloor\frac{l+r}{2}\rfloor$ 的 DP 最优决策点，由于决策的单调性，$[l,m)$ 和 $(m,r]$ 的最优决策点就在 $[l&#39;,m&#39;]$ 和 $[m&#39;,r&#39;]$（{{{page}}}#39;$ 系列变量代表最优决策点）。</p>
+<p>于是值域分治解决。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+template &lt;class T&gt; inline void chmax(T&amp; a, const T b) { a = a &gt; b ? a : b; }
+template &lt;class T&gt; inline void chmin(T&amp; a, const T b) { a = a &lt; b ? a : b; }
+inline long long rd() {
+  long long x = 0; bool f = 0; char ch = getchar();
+  while (ch &lt; &#39;0&#39; || ch &gt; &#39;9&#39;) f |= (ch == &#39;-&#39;), ch = getchar();
+  while (ch &gt;= &#39;0&#39; &amp;&amp; ch &lt;= &#39;9&#39;) x = x * 10 + (ch &amp; 15), ch = getchar();
+  return f ? -x : x;
+}
+template &lt;class T&gt;
+constexpr T kInf = std::numeric_limits&lt;T&gt;::max();
+int n, k, a[100100]; long long dp[100100][30];
+namespace sm {
+long long Res = 0; int app[100100], L = 1, R;
+inline long long res() { return Res; }
+inline long long cal(int x) { return 1ll * x * (x - 1) / 2; }
+void prog(int l, int r) {
+  auto upd = [&amp;](int p, int d) -&gt; void {
+    Res -= cal(app[a[p]]);
+    app[a[p]] += d;
+    Res += cal(app[a[p]]);
+  };
+  while (L &gt; l) upd(--L, 1);
+  while (R &lt; r) upd(++R, 1);
+  while (L &lt; l) upd(L++, -1);
+  while (R &gt; r) upd(R--, -1);
+}
+}  // namespace Sweepline Mo
+void Rawgrass(int l, int r, int lg, int rg, int K) {
+  if (l &gt; r) return;
+  int mid = (l + r) &gt;&gt; 1, pos = 0, rrg = std::min(rg, mid - 1);
+  dp[mid][K] = kInf&lt;long long&gt;;
+  for (int t = lg; t &lt;= rrg; ++t) {
+    sm::prog(t + 1, mid);
+    if (dp[t][K - 1] != kInf&lt;long long&gt; &amp;&amp; dp[mid][K] &gt; dp[t][K - 1] + sm::res())
+      dp[mid][K] = dp[t][K - 1] + sm::res(), pos = t;
+  }
+  Rawgrass(l, mid - 1, lg, pos, K);
+  Rawgrass(mid + 1, r, pos, rg, K);
+}
+signed main() {
+  n = rd(), k = rd();
+  for (int i = 1; i &lt;= n; ++i) a[i] = rd();
+  for (int i = 1; i &lt;= n; ++i) sm::prog(1, i), dp[i][1] = sm::res();
+  for (int i = 2; i &lt;= k; ++i) Rawgrass(1, n, 1, n, i);
+  printf(&quot;%lld\n&quot;, dp[n][k]);
+  return 0;
+}
+</code></pre>
+</details>
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

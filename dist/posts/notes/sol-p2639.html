@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「P2639」Bessie 的体重问题 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「P2639」Bessie 的体重问题</h1><p>这是一道很好的背包练手题。</p>
+<p>细读题目，可以发现题目中并没有给定每捆干草的价值，只给出了每捆干草的重量。</p>
+<p>再读题目，我们发现题目求Bessie不超过节食的限制的前提下可以吃掉多少干草，所以，我们可以把每堆干草的重量看作它的的价值，这就成了一个01背包的模板了</p>
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#include &lt;iostream&gt;
+
+using namespace std;
+
+namespace solv
+{
+	const long long MAXN = 50000 + 5;
+	long long F[MAXN], w[MAXN];
+	long long n, m, c[MAXN];
+	
+	template&lt;typename T&gt;
+	inline T getMax(T x, T y)
+		{ return x &gt; y ? x : y; }
+	
+	inline void Solve()
+	{
+		scanf(&quot;%lld%lld&quot;, &amp;m, &amp;n);
+		for (long long i = 1; i &lt;= n; ++i)
+			scanf(&quot;%lld&quot;, &amp;w[i]);
+		for (long long i = 1; i &lt;= n; ++i)
+			for (long long j = m; j &gt;= w[i]; --j)
+				F[j] = solv::getMax(F[j], F[j - w[i]] + w[i]);
+		
+		printf(&quot;%lld\n&quot;, F[m]);
+	}
+}
+
+signed main()
+{
+	solv::Solve();
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

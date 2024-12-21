@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Summary -「Maximum Weight Closure of a Graph」 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Summary -「Maximum Weight Closure of a Graph」</h1><h2>1. Introduction</h2>
+<p> Define a <em><strong>closure</strong></em> of a directed graph $G=(V,E)$ as an induced set of vertexes of $G$, where the out-tended edges in $E$ start at some vertex in the <em>closure</em> of $G$ and end at some vertex in the <em>closure</em>, too. More formally, <em>closure</em> is defined as a set of vertexes $V&#39;\subseteq V$, such that $\forall u\in V&#39;,s.t.\forall\left&lt;u,v\right&gt;\in E,v\in V&#39;$.</p>
+<p> For the <em>Maximum Weight Closure of a Graph</em>, we define it as, with starting out endowing vertexes in $V&#39;$ costs called $w_u$, the maximum value of $\sum\limits_{u\in V&#39;}w_u$.</p>
+<h2>2. Construction of Algorithm</h2>
+<p> Add a source $s$ and a sink $t$ to the original graph, endow the origin edges in $E$ with capacities that $+\infty$, and connect $s$ with points with positive costs with the points&#39; costs as capacities on them while $t$ connects to those with negative costs with the minus points&#39; costs as capacities on them, where $+\infty$ is defined as any number greater or equal to $\sum |w_i|$.</p>
+<p> More formally, as explained &amp; illustrated:</p>
+<p>$
+V_N=V\cup{s,t} \
+E_N=E\cup\left{\left&lt;s,v\right&gt;\mid v\in V,w_v\geqslant0\right}\cup\left{\left&lt;v,t\right&gt;\mid v\in V,w_v&lt;0\right} \
+\begin{cases}
+c(u,v)=+\infty,\left&lt;u,v\right&gt;\in E \
+\displaystyle
+c(s,v)=w_v,w_v\geqslant0 \
+\displaystyle
+c(v,t)=-w_v,w_v&lt;0
+\end{cases}
+$</p>
+<div align = "center"> <img src = "https://img2020.cnblogs.com/blog/1924407/202112/1924407-20211211141835040-1855086965.png"> </div>
+
+<p> Which make it easy to understand the answer would be $\text{min-cut}(G_N={V_N,E_N})$.</p>
+<hr>
+<h5>[1] Referenced to <em>最小割模型在信息学竞赛中的应用 by 胡伯涛 Amber</em>.</h5>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

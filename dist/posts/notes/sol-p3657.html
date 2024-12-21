@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「P3657」Why Did the Cow Cross the Road II P | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「P3657」Why Did the Cow Cross the Road II P</h1><h2>题意简述</h2>
+<p><del>题面好长</del></p>
+<p>大概意思就是说给你两个长度均为 $n$ 的整数序列，然后如果两个位置的值的差的绝对值小于4那么这两个位置就可以连一条边。要求边不交叉，求最多能连多少条。</p>
+<h2>题解</h2>
+<p>提供一种纯树状数组的做法。（去他的dp）</p>
+<p>选取一行作为“参考行”，然后维护能与其匹配的位置，然后树状数组修改。</p>
+<p>树状数组的思路要比dp的LCS简洁很多。</p>
+<p><del>所以我们一起放弃dp罢</del></p>
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#include &lt;iostream&gt;
+#include &lt;algorithm&gt;
+#include &lt;cstring&gt;
+#include &lt;queue&gt;
+#define one max(1, a[i] - 4)
+#define two min(n, a[i] + 4)
+
+using namespace std;
+
+const int MAXN = 1e5 + 5;
+int bit[MAXN], a[MAXN], t[MAXN];
+int n, rnk[MAXN];
+
+void modify(int x, int y) {
+	for (; x &lt;= n; x += x &amp; -x)
+		if (y &lt; bit[x]) return ;
+		else bit[x] = y;
+}
+
+int queryf(int x) {
+	int res = 0;
+	for (; x; x -= x &amp; -x)
+		res = max(res, bit[x]);
+	return res;
+}
+
+signed main() {
+	scanf(&quot;%d&quot;, &amp;n);
+	for (int i = 1; i &lt;= n; ++i) scanf(&quot;%d&quot;, &amp;a[i]);
+	for (int i = 1, x; i &lt;= n; ++i) scanf(&quot;%d&quot;, &amp;x), rnk[x] = i;
+	for (int i = 1; i &lt;= n; ++i) {
+		for (int j = one; j &lt;= two; ++j) t[j] = queryf(rnk[j] - 1);
+		for (int j = one; j &lt;= two; ++j) modify(rnk[j], t[j] + 1);
+	}
+	printf(&quot;%d\n&quot;, queryf(n));
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

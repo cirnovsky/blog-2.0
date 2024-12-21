@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「JOISC 2020」建筑装饰 4 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「JOISC 2020」建筑装饰 4</h1><p>朴素的 DP 形式是定义 $f_{i, j, A/B}$ 表示前 $i$ 个元素选择了 $j$ 个 $A$ 的可达性. $\mathcal O(n^2)$. 交换状态与值域, 定义 $f_{i, A/B, A/B}$ 表示前 $i$ 个元素中的最后一个元素 (即 $i$) 选择了 $A/B$, 在最大化 $A/B$ 的数量的目标下求得的 $A/B$ 的数量.</p>
+<p>转移在代码注释里, 答案倒着构造.</p>
+<pre><code class="language-cpp">/**
+ * dp[i][A/B][A/B]: 前 i 个, 第 i 个选 A 还是 B, 最大化 A/B 的数量
+ * a[i] &gt;= a[i-1]: dp[i-1][A][A]+1 -&gt; dp[i][A][A]; dp[i-1][A][B] -&gt; dp[i][A][B]
+ * a[i] &gt;= b[i-1]: dp[i-1][B][A]+1 -&gt; dp[i][A][A]; dp[i-1][B][B] -&gt; dp[i][A][B]
+ * b[i] &gt;= a[i-1]: dp[i-1][A][B]+1 -&gt; dp[i][B][B]; dp[i-1][A][A] -&gt; dp[i][B][A]
+ * b[i] &gt;= b[i-1]: dp[i-1][B][B]+1 -&gt; dp[i][B][B]; dp[i-1][B][A] -&gt; dp[i][B][A]
+*/
+enum Element {A, B};
+const int N = 1e6;
+int n, a[N + 100], b[N + 100], f[N + 100][2][2];
+char ans[N + 100];
+int main()
+{
+    ios::sync_with_stdio(0);
+    cin.tie(nullptr);
+    rd(n), rds(a, 2 * n) , rds(b, 2 * n);
+    rep (i, 1, 2 * n) {
+        if (a[i] &gt;= a[i - 1]) {
+            chkmax(f[i][A][A], f[i - 1][A][A] + 1);
+            chkmax(f[i][A][B], f[i - 1][A][B]);
+        }
+        if (a[i] &gt;= b[i - 1]) {
+            chkmax(f[i][A][A], f[i - 1][B][A] + 1);
+            chkmax(f[i][A][B], f[i - 1][B][B]);
+        }
+        if (b[i] &gt;= a[i - 1]) {
+            chkmax(f[i][B][B], f[i - 1][A][B] + 1);
+            chkmax(f[i][B][A], f[i - 1][A][A]);
+        }
+        if (b[i] &gt;= b[i - 1]) {
+            chkmax(f[i][B][B], f[i - 1][B][B] + 1);
+            chkmax(f[i][B][A], f[i - 1][B][A]);
+        }
+    }
+    int cnt[2] = {}, last = 1e9;
+    drep (i, 2 * n, 1) {
+        if (cnt[A] + f[i][A][A] &gt;= n &amp;&amp; cnt[B] + f[i][A][B] &gt;= n &amp;&amp; a[i] &lt;= last) last = a[i], ans[i] = &#39;A&#39;, cnt[A]++;
+        else if (cnt[A] + f[i][B][A] &gt;= n &amp;&amp; cnt[B] + f[i][B][B] &gt;= n &amp;&amp; b[i] &lt;= last) last = b[i], ans[i] = &#39;B&#39;, cnt[B]++;
+        else {
+            cout &lt;&lt; &quot;-1\n&quot;; return 0;
+        }
+    }
+    copy_n(ans + 1, 2 * n, ostream_iterator&lt;char&gt;(cout, &quot;&quot;));
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

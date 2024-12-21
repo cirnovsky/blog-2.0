@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「SDOI 2010」猪国杀 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「SDOI 2010」猪国杀</h1><h2>一个正常人是不会做这种题的...</h2>
+<p>某年某月某天，我校机房有个可怜人被人强行立了个flag:9月月底做不出来luoguP2482就女装！于是他拼命的调代码。5分，10分，25分......95分。最后实在不行了求救了机房大佬WY才AC。</p>
+<p>这位同志的精神感动了机房，于是全机房都开始疯狂的调这道题。我也<del>不幸</del>幸运的成为了其中的一员。</p>
+<p>其实这道题就是模拟，大概是因为我平时闲的没事喜欢做游戏，所以感觉挺简单的。</p>
+<p>把各种行为封装成自由函数，当然如果你想建class也没有问题。</p>
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#include &lt;iostream&gt;
+#include &lt;algorithm&gt;
+#include &lt;cstring&gt;
+
+using namespace std;
+
+/*
+¡¾ÌÒ¡¿ P
+¡¾É±¡¿ K
+¡¾ÉÁ¡¿ D
+¡¾¾ö¶·¡¿ F
+¡¾ÄÏÂùÈëÇÖ¡¿ N
+¡¾Íò¼ýÆë·¢¡¿ W
+¡¾ÎÞÐ¸¿É»÷¡¿ J
+¡¾Öî¸ðÁ¬åó¡¿ Z
+*/
+
+const int MAX_PLAYER_NUM = 100 + 5;
+const int MAX_CARD_NUM = 2000 + 5;
+class PIG
+{
+public:
+	int		card_num;
+	int		life_num;
+	int		_next;
+	int		_last;
+	char	identity;
+	char	card[MAX_CARD_NUM];
+	bool	isGetedZgln;
+} A[MAX_PLAYER_NUM];
+char	id_in_king[MAX_PLAYER_NUM]; 	//在主公眼里诸猪的身份
+char	card_set[MAX_CARD_NUM];
+char	scanner[MAX_PLAYER_NUM];
+int		n, m, bad_man_num;
+bool	GG;  //主公是否GG
+
+inline	 void		initt(	 	 		   	    );
+inline	 void		start(		  	 	 	    );
+inline	 void		mopai(       int fuck       );  //不知道怎么命名了...
+inline	 void		nmrqq(		 int fuck       );
+inline	 void		wjqff(		 int fuck       );
+inline	 void		jisha( int Killer, int GGer );
+inline	 void		killl( int Killer, int GGer );
+inline	 void		jdddd( int Killer, int GGer );
+inline	 bool		wxkjj(int x1, int x2, int x3);   //为了对齐
+
+signed main()
+{
+	initt();
+	start();
+	if (A[1].life_num &lt;= 0)	puts(&quot;FP&quot;);
+	else puts(&quot;MP&quot;);
+	for (int i = 1; i &lt;= n; ++i)
+	{
+		if (A[i].life_num &lt;= 0)	puts(&quot;DEAD&quot;);
+		else
+		{
+			for (int j = 1; j &lt;= A[i].card_num; ++j)
+				if (A[i].card[j] != &#39;U&#39;)	printf(&quot;%c &quot;, A[i].card[j]);
+			puts(&quot;&quot;);
+		}
+	}
+	return 0;
+}
+
+inline void	initt()
+{
+	scanf(&quot;%d%d&quot;, &amp;n, &amp;m);
+	for (int i = 1; i &lt;= n; ++i)	A[i]._next = i + 1, A[i]._last = i - 1;
+	A[n]._next = 1, A[1]._last = n;
+	for (int i = 1; i &lt;= n; ++i)
+	{
+		for (int j = 1; j &lt; MAX_CARD_NUM; ++j)	A[i].card[j] = &#39;U&#39;;
+		scanf(&quot;%s&quot;, scanner);
+		A[i].identity = scanner[0];
+		for (int j = 1; j &lt; 5; ++j)	scanf(&quot;%s&quot;, scanner), A[i].card[j] = scanner[0];
+		A[i].life_num = A[i].card_num = 4;
+		if (A[i].identity == &#39;F&#39;)	bad_man_num++;
+		A[i].isGetedZgln = false;
+	}
+	id_in_king[1] = &#39;M&#39;;
+	for (int i = 2; i &lt;= n; ++i)	id_in_king[i] = &#39;U&#39;;
+	for (int i = 1; i &lt;= m; ++i)	scanf(&quot;%s&quot;, scanner), card_set[m - i + 1] = scanner[0];
+}
+
+inline void start()
+{
+	char now_card;
+	GG = true;
+	if (bad_man_num) GG = false;
+	if (GG)		return;
+	for (int i = 1; i; i = A[i]._next)
+	{
+		mopai(i), mopai(i);
+		bool isKilled = true;
+		for (int j = 1; j &lt;= A[i].card_num; ++j)
+		{
+			if (A[i].card[j] != &#39;U&#39;)
+			{
+				if (!A[i].life_num)	break;
+				now_card = A[i].card[j];
+
+				if (now_card == &#39;P&#39;)
+				{
+					if (A[i].life_num != 4)	A[i].life_num++, A[i].card[j] = &#39;U&#39;;
+					continue;
+				}
+
+				if (now_card == &#39;K&#39;)
+				{
+					if (!isKilled &amp;&amp; !A[i].isGetedZgln)	continue;
+					if ((A[i].identity == &#39;M&#39;) &amp;&amp; (id_in_king[A[i]._next] != &#39;L&#39;) &amp;&amp; (id_in_king[A[i]._next] != &#39;F&#39;))
+						continue;
+					if ((A[i].identity == &#39;Z&#39;) &amp;&amp; (id_in_king[A[i]._next] != &#39;F&#39;))
+						continue;
+					if ((A[i].identity == &#39;F&#39;) &amp;&amp; (id_in_king[A[i]._next] != &#39;Z&#39;) &amp;&amp; (id_in_king[A[i]._next] != &#39;M&#39;))
+						continue;
+					A[i].card[j] = &#39;U&#39;;
+					killl(i, A[i]._next);
+					id_in_king[i] = A[i].identity;
+					isKilled = false;
+					if (GG)	return;
+					continue;
+				}
+
+				if (now_card == &#39;F&#39;)
+				{
+					if (A[i].identity == &#39;F&#39;)
+					{
+						A[i].card[j] = &#39;U&#39;;
+						jdddd(i, 1);
+						id_in_king[i] = A[i].identity;
+						if (GG)	return;
+						j = 0;
+						continue;
+					}
+					for (int k = A[i]._next; k != i; k = A[k]._next)
+					{
+						if ((A[i].identity == &#39;M&#39; &amp;&amp; (id_in_king[k] == &#39;L&#39; || id_in_king[k] == &#39;F&#39;)) || (A[i].identity == &#39;Z&#39; &amp;&amp; id_in_king[k] == &#39;F&#39;))
+						{
+							A[i].card[j] = &#39;U&#39;;
+							jdddd(i, k);
+							id_in_king[i] = A[i].identity;
+							if (GG)	return;
+							j = 0;
+							break;
+						}
+					}
+					continue;
+				}
+					
+
+				if (now_card == &#39;N&#39;)
+				{
+					A[i].card[j] = &#39;U&#39;;
+					nmrqq(i);
+					if (GG)	return;
+					j = 0;
+					continue;
+				}
+
+				if (now_card == &#39;W&#39;)
+				{
+					A[i].card[j] = &#39;U&#39;;
+					wjqff(i);
+					if (GG)	return;
+					j = 0;
+					continue;
+				}
+
+				if (now_card == &#39;Z&#39;)
+				{
+					A[i].isGetedZgln = true;
+					A[i].card[j] = &#39;U&#39;;
+					j = 0;
+					continue;
+				}
+			}
+		}
+	}
+}
+
+inline void mopai(int fuck)
+{
+	if (!m)	m++;
+	A[fuck].card[++A[fuck].card_num] = card_set[m];
+	m--;
+}
+
+inline void nmrqq(int fuck)
+{
+	for (int shit = A[fuck]._next; shit != fuck; shit = A[shit]._next)
+	{
+		if (!wxkjj(fuck, shit, 1))
+		{
+			int i;
+			for (i = 1; i &lt;= A[shit].card_num; ++i)
+			{
+				if (A[shit].card[i] == &#39;K&#39;)
+				{
+					A[shit].card[i] = &#39;U&#39;;
+					break;
+				}
+			}
+			if (i &gt; A[shit].card_num)
+			{
+				A[shit].life_num--;
+				if (shit == 1 &amp;&amp; id_in_king[fuck] == &#39;U&#39;)	id_in_king[fuck] = &#39;L&#39;;
+				if (!A[shit].life_num) jisha(fuck, shit);
+				if (GG)	return;
+			}
+		}
+	}
+}
+
+inline void wjqff(int fuck)
+{
+	for (int shit = A[fuck]._next; shit != fuck; shit = A[shit]._next)
+	{
+		if (!wxkjj(fuck, shit, 1))
+		{
+			int i;
+			for (i = 1; i &lt;= A[shit].card_num; ++i)
+			{
+				if (A[shit].card[i] == &#39;D&#39;)
+				{
+					A[shit].card[i] = &#39;U&#39;;
+					break;
+				}
+			}
+			if (i &gt; A[shit].card_num)
+			{
+				A[shit].life_num--;
+				if (shit == 1 &amp;&amp; id_in_king[fuck] == &#39;U&#39;)	id_in_king[fuck] = &#39;L&#39;;
+				if (!A[shit].life_num)	jisha(fuck, shit);
+				if (GG)	return;
+			}
+		}
+	}
+}
+
+inline void jisha(int Killer, int GGer)
+{
+	for (int i = 1; i &lt;= A[GGer].card_num; ++i)
+	{
+		if (A[GGer].card[i] == &#39;P&#39;)
+		{
+			A[GGer].card[i] = &#39;U&#39;;
+			A[GGer].life_num++;
+			return ;
+		}
+	}
+	
+	A[A[GGer]._next]._last = A[GGer]._last;
+	A[A[GGer]._last]._next = A[GGer]._next;
+	
+	if (GGer == 1)
+	{
+		GG = true;
+		return ;
+	}
+	
+	if (A[GGer].identity == &#39;F&#39;)	bad_man_num--;
+	
+	if (!bad_man_num)
+	{
+		GG = true;
+		return ;
+	}
+	
+	if (A[GGer].identity == &#39;F&#39;)	mopai(Killer), mopai(Killer), mopai(Killer);
+	
+	if (A[GGer].identity == &#39;Z&#39; &amp;&amp; A[Killer].identity == &#39;M&#39;)	A[Killer].card_num = 0, A[Killer].isGetedZgln = false;
+}
+
+inline void killl(int Killer, int GGer)
+{
+	for (int i = 1; i &lt;= A[GGer].card_num; ++i)
+	{
+		if (A[GGer].card[i] == &#39;D&#39;)
+		{
+			A[GGer].card[i] = &#39;U&#39;;
+			return ;
+		}
+	}
+	A[GGer].life_num--;
+	if (!A[GGer].life_num)	jisha(Killer, GGer);
+}
+
+inline void jdddd(int Killer, int GGer)
+{
+	int fuck, shit;
+	if (wxkjj(Killer, GGer, 1))	return ;
+	
+	if (Killer == 1 &amp;&amp; A[GGer].identity == &#39;Z&#39;)
+	{
+		A[GGer].life_num--;
+		if (!A[GGer].life_num)	jisha(Killer, GGer);
+		return ;
+	}
+	
+	fuck = shit = 1;
+	
+	while (233)
+	{
+		while (A[GGer].card[fuck] != &#39;K&#39; &amp;&amp; fuck &lt;= A[GGer].card_num)	++fuck;
+		if (fuck &gt; A[GGer].card_num)
+		{
+			A[GGer].life_num--;
+			if (!A[GGer].life_num)	jisha(Killer, GGer);
+			return ;
+		}
+		else A[GGer].card[fuck] = &#39;U&#39;;
+		
+		while (A[Killer].card[shit] != &#39;K&#39; &amp;&amp; shit &lt;= A[Killer].card_num)	++shit;
+		if (shit &gt; A[Killer].card_num)
+		{
+			A[Killer].life_num--;
+			if (!A[Killer].life_num)	jisha(GGer, Killer);
+			return ;
+		}
+		else A[Killer].card[shit] = &#39;U&#39;;
+	}
+}
+
+inline bool wxkjj(int x1, int x2, int x3)
+{
+	int i = x1;
+	while (233)
+	{
+		if (x3 == 1)
+		{
+			if (id_in_king[x2] == A[i].identity || (id_in_king[x2] == &#39;M&#39; &amp;&amp; A[i].identity == &#39;Z&#39;) || (id_in_king[x2] == &#39;Z&#39; &amp;&amp; A[i].identity == &#39;M&#39;))
+			{
+				for (int j = 1; j &lt;= A[i].card_num; ++j)
+				{
+					if (A[i].card[j] == &#39;J&#39;)
+					{
+						A[i].card[j] = &#39;U&#39;;
+						id_in_king[i] = A[i].identity;
+						return !wxkjj(i, x1, 0);
+					}
+				}
+			}
+		}
+		
+		else
+		{
+			if (((A[i].identity == &#39;M&#39; || A[i].identity == &#39;Z&#39;) &amp;&amp; id_in_king[x1] == &#39;F&#39;) || (A[i].identity == &#39;F&#39; &amp;&amp; (id_in_king[x1] == &#39;M&#39; || id_in_king[x1] == &#39;Z&#39;)))
+			{
+				for (int j = 1; j &lt;= A[i].card_num; ++j)
+				{
+					if (A[i].card[j] == &#39;J&#39;)
+					{
+						A[i].card[j] = &#39;U&#39;;
+						id_in_king[i] = A[i].identity;
+						return !wxkjj(i, x1, 0);
+					}
+				}
+			}
+		}
+		i = A[i]._next;
+		if (i == x1)	break;
+	}
+	return false;
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「NOIOLS 3」水壶 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「NOIOLS 3」水壶</h1><p>作为提高组的题还是水了点。</p>
+<p>题目让我们求一个长度限制为 $k+1$ 的最大子段和，又因为 $A_{i}$ 非负，所以直接前缀和求 $\max(sum_{i+k}-sum_{i-1})$。</p>
+<p>（开始没看 $A_{i}$ 的范围还锤了半天单调队列……）</p>
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#include &lt;iostream&gt;
+#include &lt;algorithm&gt;
+#include &lt;cstring&gt;
+
+using namespace std;
+
+const int N = 1e6 + 5;
+int n, k, a[N];
+long long sum[N], dp[N];
+
+signed main() {
+	freopen(&quot;kettle.in&quot;, &quot;r&quot;, stdin);
+	freopen(&quot;kettle.out&quot;, &quot;w&quot;, stdout);
+	scanf(&quot;%d %d&quot;, &amp;n, &amp;k);
+	for (int i = 1; i &lt;= n; ++i) scanf(&quot;%d&quot;, &amp;a[i]), sum[i] = sum[i - 1] + a[i];
+	long long ans = 0;
+	for (int i = 1; i &lt;= n - k; ++i) ans = max(ans, sum[i + k] - sum[i - 1]);
+	return printf(&quot;%lld\n&quot;, ans), 0;
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

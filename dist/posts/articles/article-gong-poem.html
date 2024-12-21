@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>龚体诗尝试集 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>龚体诗尝试集</h1><p>龚体诗记录：）。</p>
+<blockquote>
+<p>你出卖灵魂有保障</p>
+</blockquote>
+<blockquote>
+<p>母亲买保险</p>
+</blockquote>
+<blockquote>
+<p><strong>甩甩脑袋又去上班</strong></p>
+</blockquote>
+<blockquote>
+<p>结局皆大欢喜</p>
+</blockquote>
+<hr>
+<blockquote>
+<p>脑子上的包 非常地大</p>
+</blockquote>
+<hr>
+<blockquote>
+<p>那日回头望</p>
+</blockquote>
+<blockquote>
+<p>楼上房间看到了</p>
+</blockquote>
+<blockquote>
+<p>向前看</p>
+</blockquote>
+<blockquote>
+<p>竟是脑子上的包</p>
+</blockquote>
+<hr>
+<blockquote>
+<p>牛逼一二大于我</p>
+</blockquote>
+<blockquote>
+<p>做好翻译为民</p>
+</blockquote>
+<blockquote>
+<p>至今未见位于韩国</p>
+</blockquote>
+<blockquote>
+<p>谷歌科技有限公司</p>
+</blockquote>
+<hr>
+<blockquote>
+<p>宗教事务管理附件</p>
+</blockquote>
+<blockquote>
+<p>附近医院放假一天</p>
+</blockquote>
+<blockquote>
+<p>无脑文件发生的我</p>
+</blockquote>
+<blockquote>
+<p>无颜面对眼也笑了</p>
+</blockquote>
+<hr>
+<blockquote>
+<p>解决方法显而易见</p>
+</blockquote>
+<hr>
+<blockquote>
+<p>要发生了</p>
+</blockquote>
+<blockquote>
+<p>感觉一无是处</p>
+</blockquote>
+<blockquote>
+<p>朋友突然飞机化</p>
+</blockquote>
+<blockquote>
+<p>解决方法显而易见</p>
+</blockquote>
+<p><a href="https://darkbzoj.tk/problem/4176">https://darkbzoj.tk/problem/4176</a></p>
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+using namespace std;
+typedef long long ll;
+#define cmin(x, ...) x = min({x, __VA_ARGS__})
+#define cmax(x, ...) x = max({x, __VA_ARGS__})
+#define fors(i, l, r, ...) for(int i = (l), i##end = (r), ##__VA_ARGS__; i &lt;= i##end; i++)
+#define dfors(i, r, l, ...) for(int i = (r), i##end = (l), ##__VA_ARGS__; i &gt;= i##end; i--)
+const int P = 1000000007;
+// f = mu, g = 1, f*g = e
+// g(1)S(n) = (sum(1~n)f*g[i])-(sum(2~n)g[i]*S(n/i))
+struct custom_hash {
+    static uint64_t splitmix64(uint64_t x) {
+        x += 0x9e3779b97f4a7c15;
+        x = (x^(x&gt;&gt;30))*0xbf58476d1ce4e5b9;
+        x = (x^(x&gt;&gt;27))*0x94d049bb133111eb;
+        return x^(x&gt;&gt;31);
+    }
+    size_t operator()(uint64_t x) const {
+        static const uint64_t FIXED_RANDOM = chrono::steady_clock::now().time_since_epoch().count();
+        return splitmix64(x+FIXED_RANDOM);
+    }
+};
+const function&lt;int(const int)&gt; p_mu = [](const int x) {
+    static const int THRESHOLD = 1e7;
+    static unordered_map&lt;int, int, custom_hash&gt; g_mu;
+    static const auto l_mu = [](const int n) {
+        vector&lt;int&gt; mu(n+1), prime;
+        vector&lt;bool&gt; not_prime(n+1);
+        fors(i, (mu[1] = 1)+1, n) {
+            if(not_prime[i] == 0) mu[i] = P-1,prime.emplace_back(i);
+            for(const int p : prime) {
+                if(i &gt; n/p) break;
+                not_prime[i*p] = 1;
+                if(i%p == 0) break;
+                mu[i*p] = P-mu[i];
+            }
+        }
+        fors(i, 1, n) mu[i] += mu[i-1],mu[i] %= P;
+        return mu;
+    }(THRESHOLD);
+    if(x &lt;= THRESHOLD) return l_mu[x];
+    if(g_mu.count(x)) return g_mu[x];
+    int res = 1; // sum of e(n)
+    for(int l = 2, r; l &lt;= x; l = r+1) {
+        r = x/(x/l);
+        res -= ll(r-l+1)*p_mu(x/l)%P, res %= P;
+    }
+    return g_mu[x] = (res+P)%P;
+};
+const auto rg_mu = [](const int l, const int r) { return (p_mu(r)-p_mu(l-1)+P)%P; };
+int p_div_sum(const int n) { // return (sum(1~n) n/i)^2
+    int res = 0;
+    for(int l = 1, r; l &lt;= n; l = r+1) {
+        r = n/(n/l);
+        res += ll(n/l)*(r-l+1)%P, res %= P;
+    }
+    return ll(res)*res%P;
+}
+signed main() {
+    ios::sync_with_stdio(0), cin.tie(0);
+    int n, ans = 0;
+    cin &gt;&gt; n;
+    for(int l = 1, r; l &lt;= n; l = r+1) {
+        r = n/(n/l);
+        ans += (ll)rg_mu(l, r)*p_div_sum(n/l)%P, ans %= P;
+    }
+    cout &lt;&lt; ans &lt;&lt; &quot;\n&quot;;
+    return 0;
+}
+</code></pre>
+<p>quote lyrics from laur</p>
+<blockquote>
+<p>This is the story of an ordinary man</p>
+</blockquote>
+<blockquote>
+<p>He&#39;s a quiet man who seeks no glory,</p>
+</blockquote>
+<blockquote>
+<p>but he&#39;s not afraid to defend what he loves</p>
+</blockquote>
+<blockquote>
+<p>He is a simple man</p>
+</blockquote>
+<blockquote>
+<p>who knows only that loyalty, honesty, and truth mean everything</p>
+</blockquote>
+<blockquote>
+<p>This is the story of a hero</p>
+</blockquote>
+<blockquote>
+<p>She is the last of her kind,</p>
+</blockquote>
+<blockquote>
+<p>the descendant of an ancient line of women</p>
+</blockquote>
+<blockquote>
+<p>who commanded reverence, obedience, and love</p>
+</blockquote>
+<blockquote>
+<p>But only when he faces</p>
+</blockquote>
+<blockquote>
+<p>the dark secret within his own heart, can he grow to the man</p>
+</blockquote>
+<blockquote>
+<p>who has been chosen?</p>
+</blockquote>
+<blockquote>
+<p>I think there&#39;s a reason I&#39;m a shadow, but she looks like an angel</p>
+</blockquote>
+<blockquote>
+<p>What&#39;s your name pretty boy?</p>
+</blockquote>
+<blockquote>
+<p>Which way do you think we should go?</p>
+</blockquote>
+<blockquote>
+<p>Her shadow, an endless night, falls on the land</p>
+</blockquote>
+<blockquote>
+<p>One man must undertake an expedition, an ancient treasure</p>
+</blockquote>
+<blockquote>
+<p>But the fire that brings the light can also burn the soul</p>
+</blockquote>
+<blockquote>
+<p>The only companion that you can trust is courage</p>
+</blockquote>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

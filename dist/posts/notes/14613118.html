@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「YunoOI 2007」rfplca | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「YunoOI 2007」rfplca</h1><h2>Description</h2>
+<p><a href="https://www.luogu.com.cn/problem/P7446">Link</a>.</p>
+<p>Given is a rooted tree with the $\sf1$-th node as the root.</p>
+<p>The tree will be given in this way: it will tell you that the parent of the $\sf i$-th node is $a_{i}$.</p>
+<p>Supporting the following operations:</p>
+<ul>
+<li><code>1 l r x</code>: let $\sf \forall i\in[l,r],a_{i}=max{a_{i}-x,1}$.</li>
+<li><code>2 u v</code>: find the LCA (Lowest Common Ancestor) of $\sf u$ and $\sf v$.</li>
+</ul>
+<h2>Solution</h2>
+<p>考虑到修改操作是对结点进行的操作，然后这个东西不太能直接 LCT 或树剖，考虑照序列来分块，那么我们来对结点编号分块。</p>
+<ol>
+<li>修改；</li>
+</ol>
+<p>$\quad$维护一个属性 $\sf top_{u}$ 表示在原树上结点 $\sf u$ 的祖先中不和 $\sf u$ 在同一个块里面的编号最大的一个结点的编号，如果不存在的话就令 $\sf top_{u}=1$。这样的话你从结点 $\sf u$ 跳到 root 的复杂度为 $\sf O(\sqrt{n})$。接下来考虑怎么维护这个东西。</p>
+<p>$\quad$散块我们直接暴力扫着改；对于整块，可以发现如果一个块的被修改次数超过了块的大小，那么就一定会有 $\sf top_{u}=fa_{u}$。</p>
+<ol start="2">
+<li>询问。</li>
+</ol>
+<p>$\quad$分三个类讨论，这个比较好做（差不多和树剖找 LCA 一个样子）。</p>
+<pre><code class="language-cpp">#include&lt;bits/stdc++.h&gt;
+using namespace std;
+typedef long long LL;
+LL n,m,top[400010],deln[1000],tag[1000],belong[400010],bl[1000],br[1000],fa[400010],bs;
+#define gtlf(x) ((x-1)*bs+1)
+#define gtrg(x) (min(x*bs,n))
+void updtop(LL x)
+{
+	if(belong[x]^belong[fa[x]])	top[x]=fa[x];
+	else	top[x]=top[fa[x]];
+}
+void turndown(LL x)
+{
+	if(tag[x])
+	{
+		for(LL i=gtlf(x);i&lt;=gtrg(x);++i)	fa[i]=max(fa[i]-tag[x],1ll);
+		tag[x]=0;
+	}
+}
+template&lt;typename T&gt;
+void read(T &amp;hhh)
+{
+	T x=0;
+	char c=getchar();
+	while(c&lt;&#39;0&#39; || c&gt;&#39;9&#39;)	c=getchar();
+	while(c&gt;=&#39;0&#39; &amp;&amp; c&lt;=&#39;9&#39;)	x=(x&lt;&lt;3)+(x&lt;&lt;1)+(c&amp;15),c=getchar();
+	hhh=x;
+}
+template&lt;typename T&gt;
+void write(T x,char las=&#39;\n&#39;)
+{
+	static int st[100],top=0;
+	do st[++top]=x%10,x/=10; while(x);
+	while(top)	putchar(st[top]^&#39;0&#39;),--top;
+	putchar(las);
+}
+int main()
+{
+	read(n),read(m),bs=sqrt(double(n))+1,fa[1]=belong[1]=1;
+	for(LL i=2;i&lt;=n;++i)	read(fa[i]);
+	for(LL i=2;i&lt;=n;++i)	belong[i]=(i-1)/bs+1,updtop(i);
+	LL las=0;
+	while(m--)
+	{
+		LL opt; read(opt);
+		if(opt==1)
+		{
+			LL opl,opr,opx;
+			read(opl),read(opr),read(opx);
+			opl^=las,opr^=las,opx^=las;
+			turndown(belong[opl]);
+			if(belong[opl]==belong[opr])
+			{
+				turndown(belong[opl]);
+				for(LL i=opl;i&lt;=opr;++i)	fa[i]=max(fa[i]-opx,1ll),updtop(i);
+				for(LL i=opr+1;i&lt;=gtrg(belong[opl]);++i)	updtop(i);
+			}
+			else
+			{
+				turndown(belong[opl]);
+				for(LL i=opl;i&lt;=gtrg(belong[opl]);++i)	fa[i]=max(fa[i]-opx,1ll),updtop(i);
+				for(LL i=gtlf(belong[opl]);i&lt;opl;++i)	updtop(i);
+				turndown(belong[opr]);
+				for(LL i=gtlf(belong[opr]);i&lt;=opr;++i)	fa[i]=max(fa[i]-opx,1ll),updtop(i);
+				for(LL i=opr+1;i&lt;=gtrg(belong[opr]);++i)	updtop(i);
+				for(LL i=belong[opl]+1;i&lt;belong[opr];++i)
+				{
+					if(deln[i]&gt;=bs)	tag[i]+=opx;
+					else
+					{
+						++deln[i];
+						for(LL j=gtlf(i);j&lt;=gtrg(i);++j)	fa[j]=max(fa[j]-opx,1ll),updtop(j);
+					}
+				}
+			}
+		}
+		else
+		{
+			LL opx,opy; read(opx),read(opy);
+			opx^=las,opy^=las;
+			while(opx^opy)
+			{
+				LL fopx,fopy;
+				if(deln[belong[opx]] &lt; bs) fopx=top[opx];
+				else fopx = max(1LL , fa[opx] - tag[belong[opx]]);
+				if(deln[belong[opy]] &lt; bs) fopy=top[opy];
+				else fopy = max(1LL , fa[opy] - tag[belong[opy]]);
+				if(belong[opx]^belong[opy])
+				{
+					if(belong[opx]&gt;belong[opy])	opx=fopx;
+					else	opy=fopy;
+				}
+				else if(fopx^fopy)	opx=fopx,opy=fopy;
+				else
+				{
+					if(opx&gt;opy)	turndown(belong[opx]),opx=max(1LL , fa[opx] - tag[belong[opx]]);
+					else	turndown(belong[opy]),opy=max(1LL , fa[opy] - tag[belong[opy]]);
+				}
+			}
+			write(las=opx);
+		}
+	}
+	return 0;
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

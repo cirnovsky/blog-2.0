@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「CF 607B」Zuma | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「CF 607B」Zuma</h1><h2>前言</h2>
+<p>不知为何我感觉这篇题解的 $\LaTeX$ 容易崩，崩了的话上面去我的洛谷博客查看吧。</p>
+<h2>题意简述</h2>
+<p>给你一个长度为 $n$ 的序列，每次你可以删除一回文串，问最少多少步能把这个序列删干净。</p>
+<h2>题解</h2>
+<p>考虑区间dp。</p>
+<p>状态定义很显然：$dp_{i,j}$ 表示删除区间 $[i,j]$ 的最少步数。</p>
+<p>那么状态的转移也很简单了。</p>
+<p>$
+dp_{i,j}=dp_{i+1,j-1},a_{i}=a_{j}
+$</p>
+<p>$
+dp_{i,j}=\min_{i\le k\le j}{dp_{i,j},dp_{i,k}+dp_{k+1,j}}
+$</p>
+<p>边界也很显然。</p>
+<p>$
+dp_{i,i}=1
+$</p>
+<p>$
+dp_{i,i+1}=1+[a_{i}\neq a_{i+1}]
+$</p>
+<p>最终答案就是 $dp_{1,n}$</p>
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#include &lt;iostream&gt;
+#include &lt;algorithm&gt;
+#include &lt;cstring&gt;
+#include &lt;queue&gt;
+
+using namespace std;
+
+const int MAXN = 5e2 + 5;
+int n, a[MAXN], dp[MAXN][MAXN];
+
+signed main() {
+	scanf(&quot;%d&quot;, &amp;n);
+	for (int i = 1; i &lt;= n; ++i) scanf(&quot;%d&quot;, &amp;a[i]);
+	for (int i = 1; i &lt;= n; ++i) dp[i][i] = 1;
+	for (int i = 1; i &lt; n; ++i) dp[i][i + 1] = 1 + (a[i] != a[i + 1]);
+	for (int dis = 3; dis &lt;= n; ++dis) {
+		for (int l = 1, r = dis; r &lt;= n; ++l, ++r) {
+			dp[l][r] = 0x3f3f3f3f;
+			if (a[l] == a[r]) dp[l][r] = dp[l + 1][r - 1];
+			for (int k = l; k &lt;= r; ++k) dp[l][r] = min(dp[l][r], dp[l][k] + dp[k + 1][r]);
+		}
+	}
+	printf(&quot;%d\n&quot;, dp[1][n]);
+	return 0;
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

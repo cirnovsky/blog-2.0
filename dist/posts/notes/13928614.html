@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Record -「CSP-S 2020」赛前强基 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Record -「CSP-S 2020」赛前强基</h1><p>沉心静气，少逼两句。</p>
+<h3>CF1042D Petya and Array - AC</h3>
+<p>比较随意的线段树吧吧吧吧吧懒得写了。</p>
+<h3>CF1422A Fence - AC</h3>
+<p>没有题解</p>
+<h3>CF1419A Digit Game - WA</h3>
+<p>没有题解</p>
+<h3>CF1417B Two Arrays - AC</h3>
+<p>没有题解</p>
+<h3>CF1385C Make It Good - AC</h3>
+<p>没有题解</p>
+<h3>CF1380A Three Indices - AC</h3>
+<p>没有题解</p>
+<h3>CF1380B Universal - AC</h3>
+<p>没有题解</p>
+<h3>CF1380C Create The Teams - AC</h3>
+<p>没有题解</p>
+<h3>CF1380D Berserk And Fireball - AC</h3>
+<p>死亡分类讨论</p>
+<h3>CF1397A Juggling Letters - AC</h3>
+<p>没有题解</p>
+<h3>CF1397B Power Sequence - AC</h3>
+<p>没有题解</p>
+<h3>CF1401A Distance and Axis - AC</h3>
+<p>没有题解</p>
+<h3>CF1401B Ternary Sequence - AC</h3>
+<p>没有题解</p>
+<h3>CF1401C Mere Array - AC</h3>
+<p>没有题解</p>
+<h3>CF1401D Maximum Distributed Tree - AC</h3>
+<p>首先考虑如何计算 $\sum_{i=1}^{n-1}\sum_{j=i+1}^{n}f(i,j)$。</p>
+<p>可以考虑对边计算贡献。</p>
+<p>对于一条边 $(u,v)\in E$，那么 $F_{u,v}=S_{v}\times(n-S_{v})$。其中 $F_{u,v}$ 表示边 $(u,v)$ 对答案贡献的次数，$S_{u}$ 表示点 $u$ 的 $|{\operatorname{subtree}(u)}|$。</p>
+<p>那么就有一个显然的贪心策略，把 $k$ 的质因子比较大的就分配给贡献次数比较多的边，那么对质因子和边贡献次数降序排序即可。</p>
+<p>剩下的就是一些分类讨论的问题，就是根据边的数量和质因子个数的大小关系看是补 $1$ 还是把大的乘起来。</p>
+<h3>CF1430A Number of Apartments - AC</h3>
+<p>没有题解</p>
+<h3>CF1430B Barrels - AC</h3>
+<p>没有题解</p>
+<h3>CF1430C Numbers on Whiteboard - AC</h3>
+<p>没有题解</p>
+<h3>CF1421A XORwice - AC</h3>
+<p>没有题解</p>
+<h3>CF1421B Putting Bricks in the Wall - IP</h3>
+<p>没有题解</p>
+<h3>BZOJ3727 PA2014 Final Zadanie - AC</h3>
+<p>推推式子啦。</p>
+<p>$
+{
+F_{u}\texttt{ - node u&#39;s father} \
+S_{u}\texttt{ - the sum of persons in subtree(u)} \
+W\texttt{ - the sum of persons} \
+S_{u}=\sum_{v\in\operatorname{subtree}(u)}A_{v} \
+\begin{aligned}
+B_{u}&amp;=B_{F_{u}}+W-2\times S_{u} \
+2\times S_{u}&amp;=B_{F_{u}}-B_{u}+W \
+2\times S_{u}-W&amp;=B_{F_{u}}-B_{u} \
+2\times\sum_{i=2}^{n}S_{i}-(n-1)\times W&amp;=\sum_{i=2}^{n}(B_{F_{i}}-B_{i}) \
+-(n-1)\times W&amp;=\sum_{i=2}^{n}(B_{F_{i}}-B_{i})-2\times B_{1} \
+W&amp;=\frac{2\times B_{1}-\sum_{i=2}^{n}(B_{F_{i}}-B_{i})}{n-1} \
+S_{u}&amp;=\frac{B_{F_{u}}-B_{u}+W}{2}
+\end{aligned}
+}
+$</p>
+<h3>BZOJ1965 AHOI2005 SHUFFLE - AC</h3>
+<p>发现一个位置 $l$ 经过一次变化后的位置是 $2\times l\bmod (n+1)$，然后就求个逆元。</p>
+<h3>CF739B Alyona and a tree - AC</h3>
+<p>反过来考虑，每个点能被哪些点控制，然后倍增、树上差分一下即可。</p>
+<h3>BZOJ4919 Lydsy1706 大根堆 - AC</h3>
+<p>$\texttt{LIS}$ 上树。</p>
+<p>暴力 $\texttt{DP}$ 设 $f_{u,w}$ 表示当前在 $\mathrm{subtree}(u)$，最大值小于等于 $w$ 的最大点数，然后用线段树合并优化转移即可。</p>
+<h3>CF1416A k-Amazing Numbers - AC</h3>
+<p>可知 $\forall(a_{i}=a_{j})$ 只有在 $\max{j-i}\le k$ 的情况下才会产生贡献，然后用个答案数组继承贡献即可。</p>
+<h3>P6835 Cnoi2020 线形生物 - AC</h3>
+<p>设 $E_{x\rightarrow y}$ 为从 $x$ 走到 $y$ 的期望步数，然后就推一下式子。</p>
+<p><a href="https://cdn.luogu.com.cn/upload/image_hosting/xhnqfer6.png">化简式子过程地址</a></p>
+<h3>OJ10479 NOIP2017-SIM 轰炸 - AC</h3>
+<p><a href="https://www.luogu.com.cn/paste/ewfm6fij">Desctiption</a></p>
+<p>$\texttt{Tarjan}$ 缩点后跑最长路。</p>
+<h3>OJ10480 CSP2020-SIM 玩游戏 - WA</h3>
+<p><a href="https://www.luogu.com.cn/paste/bi0aq010">Description</a></p>
+<p>可知路径一定在 $\texttt{MST}$ 上，于是就每次暴力重构然后用个 $\texttt{NIM}$ 博弈的定理倍增即可。</p>
+<p>明天加油吧，凉风请把我脑子吹清醒点qwq。</p>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

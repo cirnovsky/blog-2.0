@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「SHOI 2013」发牌 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「SHOI 2013」发牌</h1><p>看到好像没有splay的题解，来补一波~~</p>
+<p>找到1-x的区间，然后转到后面，在删除第一个就好了</p>
+<p><del>需吸氧</del></p>
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+#include &lt;iostream&gt;
+#include &lt;algorithm&gt;
+#include &lt;cstring&gt;
+#include &lt;queue&gt;
+#include &lt;utility&gt;
+#include &lt;cctype&gt;
+#define mid (l + r &gt;&gt; 1)
+
+using namespace std;
+
+const int SIZE = 7e5 + 5;
+struct SPLAY {
+	int siz;
+	int val;
+	int ch[2];
+	int fa;
+} T[SIZE];
+int root, n, R[SIZE], tot;
+
+inline void update(int u) {
+	T[u].siz = T[T[u].ch[0]].siz + T[T[u].ch[1]].siz + 1;
+}
+
+inline int make(int l, int r, int fa) {
+	int u = ++tot;
+	T[u].siz = 1;
+	T[u].val = mid;
+	T[u].ch[0] = T[u].ch[1] = 0;
+	T[u].fa = fa;
+	if (mid &gt; l) T[u].ch[0] = make(l, mid - 1, u);
+	if (mid &lt; r) T[u].ch[1] = make(mid + 1, r, u);
+	update(u);
+	return u;
+}
+
+inline void rotate(int x) {
+	int y = T[x].fa;
+	int z = T[y].fa;
+	int w = T[y].ch[1] == x;
+	T[z].ch[T[z].ch[1] == y] = x;
+	T[x].fa = z;
+	T[y].ch[w] = T[x].ch[w ^ 1];
+	T[T[x].ch[w ^ 1]].fa = y;
+	T[x].ch[w ^ 1] = y;
+	T[y].fa = x;
+	update(y), update(x);
+}
+
+inline void splay(int x, int goal) {
+	for (; T[x].fa ^ goal; rotate(x)) {
+		int y = T[x].fa;
+		int z = T[y].fa;
+		if (z ^ goal)
+			T[y].ch[1] ^ x ^ T[z].ch[1] ^ y ? rotate(x) : rotate(y);
+	}
+	if (!goal) root = x;
+}
+
+inline int getRank(int x) {
+	int u = root;
+	while (233) {
+		if (x &lt;= T[T[u].ch[0]].siz) u = T[u].ch[0];
+		else {
+			x -= T[T[u].ch[0]].siz + 1;
+			if (!x) return u;
+			u = T[u].ch[1];
+		}
+	}
+}
+
+inline int getcard(int x) {
+	if (x) {
+		splay(getRank(x), 0);
+		int u = root;
+		root = T[u].ch[1];
+		T[root].fa = 0;
+		T[u].ch[1] = 0;
+		update(u);
+		splay(getRank(T[root].siz), 0);
+		if (u) T[u].fa = root;
+		if (root) T[root].ch[1] = u, update(root);
+	}
+	int ranker = getRank(1);
+	int res = T[ranker].val;
+	splay(ranker, 0);
+	if (T[ranker].ch[1])
+		T[root = T[ranker].ch[1]].fa = 0;
+	return res;
+}
+
+signed main() {
+	scanf(&quot;%d&quot;, &amp;n);
+	root = make(1, n, 0);
+	for (int i = 1; i &lt;= n; ++i) {
+		scanf(&quot;%d&quot;, &amp;R[i]);
+		printf(&quot;%d\n&quot;, getcard(R[i] % T[root].siz));
+	}
+	return 0;
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

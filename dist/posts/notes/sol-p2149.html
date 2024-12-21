@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solution -「SDOI 2009」Elaxia 的路线 | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Solution -「SDOI 2009」Elaxia 的路线</h1><h2>题意简述</h2>
+<p>摘自题面最后一句话：</p>
+<blockquote>
+<p>就是要求无向图中，两对点间最短路的最长公共路径。</p>
+</blockquote>
+<h2>题解</h2>
+<p>一道图论好题。</p>
+<p>首先我们考虑对于四个点全部跑一遍最短路。</p>
+<p>然后我们用 <code>x1 to y1</code> 的最短路径来建立一个新的有向图，并且这个有向图是没有环的。</p>
+<p>具体实现的方法就是枚举每一条边，然后判断是否在最短路上。</p>
+<p>判断一条边 $u-&gt;v$ 是否在 <code>x1 to y1</code> 的最短路径上的方法就是根据从 $x_{1}$ 到 $u$ 的最短路加上 $u-&gt;v$ 的边权加上 $y_{1}$ 到 $v$ 的最短路是否等于 <code>x1 to y1</code> 的最短路即可。</p>
+<p>在我们新建立的 DAG 上标记出 <code>x2 to y2</code>，然后跑一次拓扑排序，最后在拓扑序列上推出答案即可。</p>
+<pre><code class="language-cpp">#include&lt;cstdio&gt;
+#include&lt;algorithm&gt;
+#include&lt;cstring&gt;
+#include&lt;queue&gt;
+using namespace std;
+const int N=1500+5;
+int n,m,st1,ed1,st2,ed2,vis[N],deg[N],rec[N],dis[5][N];
+vector&lt;pair&lt;int,int&gt; &gt; cla[N];
+vector&lt;pair&lt;pair&lt;int,int&gt;,int &gt; &gt; inv[N];
+// X.X:from,X.Y:to
+// Y.X:val,Y.Y:bool
+#define X first
+#define Y second
+
+void dij(int S,int s)
+{
+	priority_queue&lt;pair&lt;int,int&gt;,vector&lt;pair&lt;int,int&gt; &gt;,greater&lt;pair&lt;int,int&gt; &gt; &gt; Q;
+	for(int i=1;i&lt;=n;++i)
+	{
+		vis[i]=0;
+		dis[s][i]=1e9;
+	}
+	dis[s][S]=0;
+	Q.push(make_pair(dis[s][S],S));
+	while(!Q.empty())
+	{
+		int x=Q.top().Y;
+		Q.pop();
+		if(vis[x])	continue;
+		vis[x]=1;
+		for(unsigned i=0;i&lt;cla[x].size();++i)
+		{
+			int y=cla[x][i].X,z=cla[x][i].Y;
+			if(dis[s][y]&gt;dis[s][x]+z)
+			{
+				dis[s][y]=dis[s][x]+z;
+				Q.push(make_pair(dis[s][y],y));
+			}
+		}
+	}
+}
+
+void hoshi_kutsu()
+{
+	queue&lt;int&gt; Q;
+	Q.push(st1);
+	while(!Q.empty())
+	{
+		int x=Q.front();
+		Q.pop();
+		for(unsigned i=0;i&lt;inv[x].size();++i)
+		{
+			int y=inv[x][i].X.X,z=inv[x][i].X.Y,k=inv[x][i].Y;
+			deg[y]-=1;
+			if(deg[y]==0)	Q.push(y);
+			rec[y]=max(rec[y],rec[x]+z*k);
+		}
+	}
+	printf(&quot;%d\n&quot;,rec[ed1]);
+}
+signed main()
+{
+	scanf(&quot;%d %d&quot;,&amp;n,&amp;m);
+	scanf(&quot;%d %d %d %d&quot;,&amp;st1,&amp;ed1,&amp;st2,&amp;ed2);
+	for(int i=1,x,y,z;i&lt;=m;++i)
+	{
+		scanf(&quot;%d %d %d&quot;,&amp;x,&amp;y,&amp;z);
+		cla[x].push_back(make_pair(y,z));
+		cla[y].push_back(make_pair(x,z));
+	}
+	dij(st1,1),dij(ed1,2);
+	dij(st2,3),dij(ed2,4);
+	for(int i=1;i&lt;=n;++i)
+	{
+		for(unsigned j=0;j&lt;cla[i].size();++j)
+		{
+			int x=i,y=cla[i][j].X,z=cla[i][j].Y;
+			if(dis[1][x]+z+dis[2][y]!=dis[1][ed1])	continue;
+			if(dis[3][x]+z+dis[4][y]==dis[3][ed2]||
+				dis[4][x]+z+dis[3][y]==dis[3][ed2]) 	inv[x].push_back(make_pair(make_pair(y,z),1));
+			else	inv[x].push_back(make_pair(make_pair(y,z),0));
+			deg[y]++;
+		}
+	}
+	hoshi_kutsu();
+	return 0;
+}
+</code></pre>
+
+    <script src="../components/layout.js"></script>
+  </body>
+</html>

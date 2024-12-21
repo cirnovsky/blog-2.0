@@ -1,0 +1,4179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Record - Jan. all, 2021 - Training REC | 汪站</title>
+    <link rel="stylesheet" href="../output.css" />
+  </head>
+  <body>
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+        },
+      };
+    </script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <h1>Record - Jan. all, 2021 - Training REC</h1><h3>P3600 随机数生成器 - AC</h3>
+<p>记：
+$
+w=\max{\min{a_{l_{j}},a_{l_{j}+1},\cdots,a_{r_{j}}}|j\in[1,q]}
+$
+因为我们最后取的是 $\max$，不能直接用全概率公式，转化一下：
+$
+E(w)=\sum_{i=0}^{\infty}P(w\ge i)=\sum_{i=0}^{\infty}1-P(w&lt;i)
+$
+这意味着每一个被询问区间中的最小值都需 {{{page}}}lt;i$。也就是说，每一个区间至少需要一个 {{{page}}}lt;i$ 的数。</p>
+<p>这对于每一个区间来说概率为 $\frac{i-1}{x}$。又因为区间可能出现相交，所以我们考虑用点去被包含于区间。</p>
+<p>当然，一个区间包含另一个区间，这个区间肯定是没有用的。然后把区间按左右端点分别为第一、第二关键字排序。</p>
+<p>枚举 $w$，设 $f_{i}$ 表示区间右端点在 $i$ 之前的所有区间满足条件的概率。
+$
+f_{i}=\frac{w-1}{x}\times\sum_{j=0}^{i}f_{j}\times(1-\frac{w-1}{x})^{i-j-1}
+$</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;cstdio&gt;
+
+using i64 = long long;
+
+const int MOD = 666623333;
+const int MAXN = 2e3 + 5;
+
+int n, x, q, ar[MAXN];
+i64 f[MAXN][2], ff[MAXN][2];
+
+void imax ( int&amp; a, const int b ) { a = a &lt; b ? b : a; }
+int add ( const int a, const int b, const int p = MOD ) { return a + b &lt; p ? a + b : ( a + b ) % p; }
+int sub ( const int a, const int b, const int p = MOD ) { return a - b &lt; 0 ? a - b + p : a - b; }
+int mul ( const i64 a, const i64 b, const int p = MOD ) { return a * b % p; }
+int cpow ( int bas, int idx = MOD - 2 ) {
+	int res = 1;
+	while ( idx ) {
+		if ( idx &amp; 1 )	res = mul ( res, bas );
+		bas = mul ( bas, bas ), idx &gt;&gt;= 1;
+	}
+	return res % MOD;
+}
+
+int main () {
+	scanf ( &quot;%d%d%d&quot;, &amp;n, &amp;x, &amp;q );
+	for ( int i = 1, tmpl, tmpr; i &lt;= q; ++ i )	scanf ( &quot;%d%d&quot;, &amp;tmpl, &amp;tmpr ), imax ( ar[tmpr + 1], tmpl );
+	for ( int i = 1; i &lt;= n + 1; ++ i )	imax ( ar[i], ar[i - 1] );
+	i64 ix = cpow ( x ), ans = 0;
+	for ( int i = 1; i &lt;= x; ++ i ) {
+		i64 p = mul ( i - 1, ix ) % MOD, ip = cpow ( 1 - p ), s;
+		ff[0][0] = ff[0][1] = 1;
+		for ( int j = 1; j &lt;= n; ++ j )	ff[j][0] = mul ( ff[j - 1][0], 1 - p ) % MOD, ff[j][1] = mul ( ff[j - 1][1], ip ) % MOD;
+		f[0][0] = 0, f[0][1] = 1;
+		for ( int j = 1; j &lt;= n; ++ j ) {
+			f[j][0] = mul ( mul ( p, sub ( f[j - 1][1], ar[j] ? f[ar[j] - 1][1] : 0 ) ) % MOD, ff[j - 1][0] ) % MOD;
+			f[j][1] = add ( mul ( f[j][0], ff[j][1] ) % MOD, f[j - 1][1] ) % MOD;
+		}
+		s = 0;
+		for ( int j = ar[n + 1]; j &lt;= n; ++ j )	s = add ( s, mul ( f[j][0], ff[n - j][0] ) % MOD ) % MOD;
+		ans = sub ( add ( ans, 1 ) % MOD, s );
+	}
+	printf ( &quot;%lld\n&quot;, ans % MOD );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P3602 Koishi Loves Segments - AC</h3>
+<p>依次加入线段（从左到右），然后若有一个点不合删其右端点最远。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;bits/stdc++.h&gt;
+struct seg{int l,r;bool operator&lt;(seg t){return l&lt;t.l;}}s1[500010],s2[500010];int n,m;std::multiset&lt;int&gt;ms;
+int main(){
+	std::cin&gt;&gt;n&gt;&gt;m;for(int i=1;i&lt;=n;++i)std::cin&gt;&gt;s1[i].l&gt;&gt;s1[i].r;int ans=0;
+	for(int i=1;i&lt;=m;++i)std::cin&gt;&gt;s2[i].l&gt;&gt;s2[i].r;std::sort(s1+1,s1+1+n);std::sort(s2+1,s2+1+m);
+	for(int l=1,r=1;l&lt;=m;++l){
+		while(r&lt;=n&amp;&amp;s1[r].l&lt;=s2[l].l)ms.insert(s1[r++].r);
+		while(ms.size()&amp;&amp;*ms.begin()&lt;s2[l].l)ms.erase(ms.begin());
+		while(ms.size()&gt;s2[l].r)ms.erase(std::prev(ms.end())),ans++;
+	}std::cout&lt;&lt;n-ans;
+}
+</code></pre>
+</details>
+
+<h3>P4127 [AHOI2009]同类分布 - AC</h3>
+<p>vector 慢成仙人。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+using i64 = long long;
+
+i64 a, b, f[20][200][200], ori[20];
+
+i64 dfs ( const int pos, const int sum, const i64 num, const int lim, const int len, const int mod ) {
+	if ( ( pos &gt; len &amp;&amp; ! sum ) || sum + 9 * len &lt; mod )	return 0;
+	if ( pos &gt; len )	return ! num &amp;&amp; sum == mod;
+	if ( ! lim &amp;&amp; ~ f[pos][sum][num] )	return f[pos][sum][num];
+	i64 res = 0;
+	int mx = lim ? ori[len - pos] : 9;
+	for ( int i = 0; i &lt;= mx; ++ i )	res += dfs ( pos + 1, sum + i, ( num * 10 + i ) % mod, lim &amp;&amp; i == mx, len, mod );
+	return lim ? res : f[pos][sum][num] = res;
+}
+
+i64 solve ( const i64 val ) {
+	i64 tmp = val;
+	int len = 0;
+	for ( ; tmp; tmp /= 10 )	ori[len ++] = tmp % 10;
+	i64 res = 0;
+	for ( int MOD = 1; MOD &lt;= 9 * len; ++ MOD ) {
+		memset ( f, -1, sizeof f );
+		res += dfs ( 1, 0, 0, 1, len, MOD );
+	}
+	return res;
+}
+
+int main () {
+	std::ios::sync_with_stdio ( 0 ); std::cin.tie ( 0 ); std::cout.tie ( 0 );
+	std::cin &gt;&gt; a &gt;&gt; b;
+	std::cout &lt;&lt; solve ( b ) - solve ( a - 1 ) &lt;&lt; &#39;\n&#39;;
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P3603 雪辉 - AC</h3>
+<p>疑似是树分块板？</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+using i64 = long long;
+using u64 = unsigned long long;
+
+std::mt19937_64 randomEngine ( time ( 0 ) );
+int calcRND ( const int  l, const int  r ) {
+	std::uniform_int_distribution&lt;long long&gt; distribution ( l, r );
+	int randomNumber = distribution ( randomEngine );
+	return randomNumber;
+}
+
+const int MAXN = 1e5 + 5, MAXS = 330;
+const i64 one64 = 1ll;
+
+char gtc () { return getchar (); }
+int rint () {
+	int x = 0, f = 1; char c = gtc ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = gtc () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = gtc () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+void ptc ( const char x ) { putchar ( x ); }
+void wint ( int x ) {
+	if ( x &lt; 0 )	ptc ( &#39;-&#39; ), x = ~ x + 1;
+	if ( x &gt; 9 )	wint ( x / 10 );
+	ptc ( x % 10 ^ &#39;0&#39; );
+}
+
+template&lt;typename _T&gt; _T imax ( const _T x, const _T y ) { return x &lt; y ? y : x; }
+template&lt;typename _T&gt; void swapp ( _T&amp; x, _T&amp; y ) { _T w = x; x = y; y = w; }
+
+struct prBitS {
+	u64 c[500]; int L;
+	prBitS () : L ( 0 ), c ( { 0 } ) {}
+	void clear () { memset ( c, 0, sizeof c ), L = 0; }
+	void operator |= ( const prBitS&amp; t ) { L = imax ( L, t.L ); for ( int i = 0; i &lt;= L; ++ i )	c[i] |= t.c[i]; }
+	void operator |= ( const int&amp; x ) { L = imax ( L, x &gt;&gt; 6 ); c[x &gt;&gt; 6] |= one64 &lt;&lt; ( x &amp; 63 ); }
+	int calc_num () {
+		int res = 0;
+		for ( int i = 0; i &lt;= L; ++ i ) for ( int j = 0; j &lt; 64; ++ j ) {
+			if ( c[i] &amp; ( one64 &lt;&lt; j ) )	++ res;
+		}
+		return res;
+	}
+	int calc_mex () {
+		for ( int i = 0; i &lt;= L; ++ i ) for ( int j = 0; j &lt; 64; ++ j ) {
+			if ( ! ( c[i] &amp; ( one64 &lt;&lt; j ) ) )	return i * 64 + j;
+		}
+		return 0;
+	}
+} bs[MAXS][MAXS];
+
+struct Edge { int to, nxt; } graph[MAXN * 2];
+
+int n, m, head[MAXN], ecnt, kfa[MAXN][21], a[MAXN], dep[MAXN], used[MAXN], kSet[MAXN], rk[MAXN], ar[MAXN];
+
+void link ( const int u, const int v ) { graph[++ ecnt] = { v, head[u] }, head[u] = ecnt; }
+
+void dfs ( const int u, const int pr ) {
+	dep[u] = dep[pr] + 1, kfa[u][0] = pr;
+	for ( int i = 1; i &lt;= 20; ++ i )	kfa[u][i] = kfa[kfa[u][i - 1]][i - 1];
+	for ( int i = head[u]; i; i = graph[i].nxt ) {
+		int v = graph[i].to;
+		if ( v != pr )	dfs ( v, u );
+	}
+}
+
+int calcLCA ( int u, int v ) {
+	if ( dep[u] &lt; dep[v] )	swapp ( u, v );
+	for ( int i = 20; ~ i; -- i ) {
+		if ( dep[kfa[u][i]] &gt;= dep[v] )	u = kfa[u][i];
+	}
+	if ( u == v )	return u;
+	for ( int i = 20; ~ i; -- i ) {
+		if ( kfa[u][i] != kfa[v][i] )	u = kfa[u][i], v = kfa[v][i];
+	}
+	return kfa[u][0];
+}
+
+void initial () {
+	int S = sqrt ( n );
+	for ( int i = 1; i &lt;= S; ++ i ) {
+		int p = calcRND ( 1, n );
+		while ( used[p] )	p = calcRND ( 1, n );
+		used[p] = 1, kSet[i] = p, rk[p] = i;
+	}
+	prBitS p_bs;
+	for ( int i = 1; i &lt;= S; ++ i ) {
+		p_bs.clear ();
+		int cur = kSet[i], first = 1;
+		while ( cur || first ) {
+			p_bs |= a[cur];
+			if ( cur != kSet[i] &amp;&amp; rk[cur] ) {
+				bs[i][rk[cur]] |= p_bs;
+				if ( ! ar[kSet[i]] )	ar[kSet[i]] = cur;
+			}
+			cur = kfa[cur][0];
+			first = 0;
+		}
+	}
+}
+
+void jumpAncestors ( int&amp; x, prBitS&amp; ans, const int z ) {
+	while ( ! ar[x] &amp;&amp; x != z )	ans |= a[x], x = kfa[x][0];
+	int cur = x;
+	while ( dep[ar[x]] &gt; dep[z] )	x = ar[x];
+	ans |= bs[rk[cur]][rk[x]];
+	while ( x != z )	ans |= a[x], x = kfa[x][0];
+}
+
+int main () {
+	n = rint (), m = rint (); int f = rint ();
+	for ( int i = 1; i &lt;= n; ++ i )	a[i] = rint ();
+	for ( int i = 1; i &lt; n; ++ i ) {
+		int u = rint (), v = rint ();
+		link ( u, v ), link ( v, u );
+	}
+	dfs ( 1, 0 ), initial (); int las = 0; prBitS ans;
+	for ( int i = 1; i &lt;= m; ++ i ) {
+		ans.clear ();
+		for ( int T = rint (); T; T -- ) {
+			int x = rint (), y = rint ();
+			if ( f )	x ^= las, y ^= las;
+			int z = calcLCA ( x, y ); ans |= a[z];
+			jumpAncestors ( x, ans, z ), jumpAncestors ( y, ans, z );
+		}
+		int ret_n = ans.calc_num (), ret_m = ans.calc_mex ();
+		wint ( ret_n ), ptc ( &#39; &#39; ), wint ( ret_m ), ptc ( &#39;\n&#39; );
+		las = ret_n + ret_m;
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>LOC3564 最小费用流 - AC</h3>
+<p>流 板。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+using i64 = long long;
+using pii = std::pair&lt;i64, i64&gt;;
+
+const i64 INF = 1e18;
+const int MAXN = 2e5 + 5, MAXM = 2e5 + 5;
+
+i64 rint () {
+	i64 x = 0, f = 1; char c = getchar ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = getchar () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = getchar () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt; _T imin ( const _T x, const _T y ) { return x &lt; y ? x : y; }
+
+struct Edge { int to, nxt; i64 c, w; } graph[MAXM * 2];
+
+int q[MAXN];
+
+i64 dist[MAXN];
+int n, m, head[MAXN], cur[MAXN], ecnt = 1, vis[MAXN], tot;
+
+void link ( const int u, const int v, const i64 c, const i64 w ) {
+	graph[++ ecnt] = { v, head[u], c, w }, head[u] = ecnt;
+	graph[++ ecnt] = { u, head[v], 0, -w }, head[v] = ecnt;
+}
+
+bool mkLayer ( const int S, const int T ) {
+	int h = 1, t = 0;
+	for ( int i = 1; i &lt;= tot; ++ i )	dist[i] = INF, vis[i] = 0;
+	dist[q[++ t] = S] = 0, vis[S] = 1;
+	while ( h &lt;= t ) {
+		int u = q[h ++]; vis[u] = 0;
+		for ( int i = head[u]; i; i = graph[i].nxt ) {
+			int v = graph[i].to; i64 c = graph[i].c, w = graph[i].w;
+			if ( c &amp;&amp; dist[v] &gt; dist[u] + w ) {
+				dist[v] = dist[u] + w;
+				if ( ! vis[v] )	vis[q[++ t] = v] = 1;
+			}
+		}
+	}
+	return dist[T] &lt; INF;
+}
+
+i64 mkWide ( const int u, const i64 flow, const int T, i64&amp; cst ) {
+	if ( u == T )	return flow;
+	i64 used = 0; vis[u] = 1;
+	for ( int&amp; i = cur[u]; i; i = graph[i].nxt ) {
+		int v = graph[i].to; i64 c = graph[i].c, w = graph[i].w;
+		if ( c &amp;&amp; ! vis[v] &amp;&amp; dist[v] == dist[u] + w ) {
+			i64 ret = mkWide ( v, imin ( flow - used, c ), T, cst );
+			graph[i].c -= ret, graph[i ^ 1].c += ret, used += ret, cst += ret * w;
+			if ( flow == used )	break;
+		}
+	}
+	if ( used &lt; flow )	dist[u] = INF;
+	vis[u] = 0; return used;
+}
+
+pii calcMXflow ( const int S, const int T ) {
+	i64 retf = 0, retw = 0;
+	while ( mkLayer ( S, T ) ) {
+		for ( int i = 1; i &lt;= tot; ++ i )	vis[i] = 0, cur[i] = head[i];
+		retf += mkWide ( S, INF, T, retw );
+	}
+	return { retf, retw };
+}
+
+int main () {
+	n = rint (), m = rint (); tot = n;
+	const int S = 1, T = n;
+	for ( int i = 1; i &lt;= m; ++ i ) {
+		int u = rint (), v = rint ();
+		i64 c = rint (), w = rint ();
+		link ( u, v, c, w );
+	}
+	pii ret = calcMXflow ( S, T );
+	printf ( &quot;%lld %lld\n&quot;, ret.first, ret.second );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>LOC3102 网络流 24 题 运输问题</h3>
+<p>流 板。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+using i64 = long long;
+using pii = std::pair&lt;i64, i64&gt;;
+
+const i64 INF = 1e18;
+const int MAXN = 1e5 + 5, MAXM = 1e6 + 5, MAXS = 2e3 + 5;
+
+char gtc () { return getchar (); }
+void ptc ( const char x ) { putchar ( x ); }
+
+int rint () {
+	int x = 0, f = 1; char c = gtc ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = gtc () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = gtc () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt; _T imin ( const _T x, const _T y ) { return x &lt; y ? x : y; }
+
+struct Edge { int to, nxt; i64 c, w; } graph[MAXM * 2];
+
+i64 dist[MAXN]; int q[MAXN];
+int n, m, head[MAXN], ecnt = 1, cur[MAXN], vis[MAXN], tot;
+int arA[MAXN], arB[MAXN], arC[MAXS][MAXS];
+
+void link ( const int u, const int v, const i64 c, const i64 w ) {
+	graph[++ ecnt] = { v, head[u], c, w }, head[u] = ecnt;
+	graph[++ ecnt] = { u, head[v], 0, -w }, head[v] = ecnt;
+}
+
+bool mkLayer ( const int S, const int T ) {
+	int h = 1, t = 0;
+	for ( int i = 1; i &lt;= tot; ++ i )	vis[i] = 0, dist[i] = INF;
+	dist[q[++ t] = S] = 0, vis[S] = 1;
+	while ( h &lt;= t ) {
+		int u = q[h ++]; vis[u] = 0;
+		for ( int i = head[u]; i; i = graph[i].nxt ) {
+			int v = graph[i].to; i64 c = graph[i].c, w = graph[i].w;
+			if ( c &amp;&amp; dist[v] &gt; dist[u] + w ) {
+				dist[v] = dist[u] + w;
+				if ( ! vis[v] )	vis[q[++ t] = v] = 1;
+			}
+		}
+	}
+	return dist[T] &lt; INF;
+}
+
+i64 mkWide ( const int u, const i64 flow, const int T, i64&amp; cst ) {
+	if ( u == T )	return flow;
+	i64 used = 0; vis[u] = 1;
+	for ( int&amp; i = cur[u]; i; i = graph[i].nxt ) {
+		int v = graph[i].to; i64 c = graph[i].c, w = graph[i].w;
+		if ( c &amp;&amp; dist[v] == dist[u] + w &amp;&amp; ! vis[v] ) {
+			i64 ret = mkWide ( v, imin ( flow - used, c ), T, cst );
+			graph[i].c -= ret, graph[i ^ 1].c += ret, used += ret, cst += ret * w;
+			if ( flow == used )	break;
+		}
+	}
+	if ( used &lt; flow )	dist[u] = INF;
+	vis[u] = 0; return used;
+}
+
+pii calcMXflow ( const int S, const int T ) {
+	i64 retf = 0, retw = 0;
+	while ( mkLayer ( S, T ) ) {
+		for ( int i = 1; i &lt;= tot; ++ i )	vis[i] = 0, cur[i] = head[i];
+		retf += mkWide ( S, INF, T, retw );
+	}
+	return { retf, retw };
+}
+
+void buildEdge ( const int S, const int T, const int f ) {
+	memset ( head, 0, sizeof head ), ecnt = 1;
+	for ( int i = 1; i &lt;= n; ++ i )	link ( S, i, arA[i], 0 );
+	for ( int i = 1; i &lt;= m; ++ i )	link ( i + n, T, arB[i], 0 );
+	for ( int i = 1; i &lt;= n; ++ i ) for ( int j = 1; j &lt;= m; ++ j )	link ( i, j + n, INF, f * arC[i][j] );
+}
+
+int main () {
+	n = rint (), m = rint (); tot = n + m;
+	const int S = ++ tot, T = ++ tot;
+	for ( int i = 1, c; i &lt;= n; ++ i )	arA[i] = rint ();
+	for ( int i = 1, c; i &lt;= m; ++ i )	arB[i] = rint ();
+	for ( int i = 1; i &lt;= n; ++ i ) for ( int j = 1; j &lt;= m; ++ j )	arC[i][j] = rint ();
+	buildEdge ( S, T, 1 ), printf ( &quot;%lld\n&quot;, calcMXflow ( S, T ).second );
+	buildEdge ( S, T, -1 ), printf ( &quot;%lld\n&quot;, calcMXflow ( S, T ).second * -1 );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>LOC9382 网络流 24 题 负载平衡问题 - AC</h3>
+<p>流 板。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+using pii = std::pair&lt;int, int&gt;;
+
+const int INF = 1e9;
+const int MAXN = 1e5 + 5, MAXM = 1e6 + 5;
+
+char gtc () { return getchar (); }
+void ptc ( const char x ) { putchar ( x ); }
+
+int rint () {
+	int x = 0, f = 1; char c = gtc ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = gtc () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = gtc () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt; _T imin ( const _T x, const _T y ) { return x &lt; y ? x : y; }
+
+struct Edge { int to, nxt; int c, w; } graph[MAXM * 2];
+
+int dist[MAXN], all; int q[MAXN];
+int n, head[MAXN], cur[MAXN], ecnt = 1, vis[MAXN], tot;
+
+void link ( const int u, const int v, const int c, const int w ) {
+	graph[++ ecnt] = { v, head[u], c, w }, head[u] = ecnt;
+	graph[++ ecnt] = { u, head[v], 0, -w }, head[v] = ecnt;
+}
+
+bool mkLayer ( const int S, const int T ) {
+	int h = 1, t = 0;
+	for ( int i = 1; i &lt;= tot; ++ i )	dist[i] = INF, vis[i] = 0;
+	dist[q[++ t] = S] = 0, vis[S] = 1;
+	while ( h &lt;= t ) {
+		int u = q[h ++]; vis[u] = 0;
+		for ( int i = head[u]; i; i = graph[i].nxt ) {
+			int v = graph[i].to; int c = graph[i].c, w = graph[i].w;
+			if ( c &amp;&amp; dist[v] &gt; dist[u] + w ) {
+				dist[v] = dist[u] + w;
+				if ( ! vis[v] )	vis[q[++ t] = v] = 1;
+			}
+		}
+	}
+	return dist[T] &lt; INF;
+}
+
+int mkWide ( const int u, const int flow, const int T, int&amp; cst ) {
+	if ( u == T )	return flow;
+	int used = 0; vis[u] = 1;
+	for ( int&amp; i = cur[u]; i; i = graph[i].nxt ) {
+		int v = graph[i].to; int c = graph[i].c, w = graph[i].w;
+		if ( c &amp;&amp; dist[v] == dist[u] + w &amp;&amp; ! vis[v] ) {
+			int ret = mkWide ( v, imin ( flow - used, c ), T, cst );
+			graph[i].c -= ret, graph[i ^ 1].c += ret, used += ret, cst += ret * w;
+			if ( flow == used )	break;
+		}
+	}
+	if ( used &lt; flow )	dist[u] = INF;
+	vis[u] = 0; return used;
+}
+
+pii calcMXflow ( const int S, const int T ) {
+	int resf = 0, resw = 0;
+	while ( mkLayer ( S, T ) ) {
+		for ( int i = 1; i &lt;= tot; ++ i )	vis[i] = 0, cur[i] = head[i];
+		resf += mkWide ( S, INF, T, resw );
+	}
+	return { resf, resw };
+}
+
+int main () {
+	n = rint (), tot = n;
+	const int S = ++ tot, T = ++ tot;
+	for ( int i = 1; i &lt;= n; ++ i ) {
+		int c = rint ();
+		link ( S, i, c, 0 );
+		all += c;
+	}
+	for ( int i = 1; i &lt;= n; ++ i )	link ( i, i % n + 1, INF, 1 ), link ( i % n + 1, i, INF, 1 );
+	for ( int i = 1; i &lt;= n; ++ i )	link ( i, T, all / n, 0 );
+	printf ( &quot;%d\n&quot;, calcMXflow ( S, T ).second );
+	return 0;
+} 
+</code></pre>
+</details>
+
+<h3>LOC3103 网络流 24 题 分配问题 - AC</h3>
+<p>流 板。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+using i64 = long long;
+using pii = std::pair&lt;i64, i64&gt;;
+
+const i64 INF = 1e18;
+const int MAXN = 1e5 + 5, MAXM = 1e6 + 5, MAXS = 2e3 + 5;
+
+char gtc () { return getchar (); }
+void ptc ( const char x ) { putchar ( x ); }
+
+int rint () {
+	int x = 0, f = 1; char c = gtc ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = gtc () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = gtc () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt; _T imin ( const _T x, const _T y ) { return x &lt; y ? x : y; }
+
+struct Edge { int to, nxt; i64 c, w; } graph[MAXM * 2];
+
+i64 dist[MAXN]; int q[MAXN];
+int n, head[MAXN], cur[MAXN], ecnt = 1, vis[MAXN], tot;
+int ar[MAXS][MAXS];
+
+void link ( const int u, const int v, const i64 c, const i64 w ) {
+	graph[++ ecnt] = { v, head[u], c, w }, head[u] = ecnt;
+	graph[++ ecnt] = { u, head[v], 0, -w }, head[v] = ecnt;
+}
+
+bool mkLayer ( const int S, const int T ) {
+	int h = 1, t = 0;
+	for ( int i = 1; i &lt;= tot; ++ i )	dist[i] = INF, vis[i] = 0;
+	dist[q[++ t] = S] = 0, vis[S] = 1;
+	while ( h &lt;= t ) {
+		int u = q[h ++]; vis[u] = 0;
+		for ( int i = head[u]; i; i = graph[i].nxt ) {
+			int v = graph[i].to; i64 c = graph[i].c, w = graph[i].w;
+			if ( c &amp;&amp; dist[v] &gt; dist[u] + w ) {
+				dist[v] = dist[u] + w;
+				if ( ! vis[v] )	vis[q[++ t] = v] = 1;
+			}
+		}
+	}
+	return dist[T] &lt; INF;
+}
+
+i64 mkWide ( const int u, const i64 flow, const int T, i64&amp; cst ) {
+	if ( u == T )	return flow;
+	i64 used = 0; vis[u] = 1;
+	for ( int&amp; i = cur[u]; i; i = graph[i].nxt ) {
+		int v = graph[i].to; i64 c = graph[i].c, w = graph[i].w;
+		if ( c &amp;&amp; dist[v] == dist[u] + w &amp;&amp; ! vis[v] ) {
+			i64 ret = mkWide ( v, imin ( flow - used, c ), T, cst );
+			graph[i].c -= ret, graph[i ^ 1].c += ret, used += ret, cst += ret * w;
+			if ( flow == used )	break;
+		}
+	}
+	if ( used &lt; flow )	dist[u] = INF;
+	vis[u] = 0; return used;
+}
+
+pii calcMXflow ( const int S, const int T ) {
+	i64 resf = 0, resw = 0;
+	while ( mkLayer ( S, T ) ) {
+		for ( int i = 1; i &lt;= tot; ++ i )	cur[i] = head[i], vis[i] = 0;
+		resf += mkWide ( S, INF, T, resw );
+	}
+	return { resf, resw };
+}
+
+void buildEdge ( const int S, const int T, const int f ) {
+	memset ( head, 0, sizeof head ), ecnt = 1;
+	for ( int i = 1; i &lt;= n; ++ i )	link ( S, i, 1, 0 );
+	for ( int i = 1; i &lt;= n; ++ i )	link ( i + n, T, 1, 0 );
+	for ( int i = 1; i &lt;= n; ++ i ) for ( int j = 1; j &lt;= n; ++ j )	link ( i, j + n, 1, f * ar[i][j] );
+}
+
+int main () {
+	n = rint (), tot = n &lt;&lt; 1;
+	const int S = ++ tot, T = ++ tot;
+	for ( int i = 1; i &lt;= n; ++ i ) for ( int j = 1; j &lt;= n; ++ j )	ar[i][j] = rint ();
+	buildEdge ( S, T, 1 ), printf ( &quot;%lld\n&quot;, calcMXflow ( S, T ).second );
+	buildEdge ( S, T, -1 ), printf ( &quot;%lld\n&quot;, calcMXflow ( S, T ).second * -1 );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P4068 [SDOI2016]数字配对 - AC</h3>
+<p>首先我们可以处理出来哪些数字之间可以进行配对。</p>
+<p>处理出每一个数的质因子的指数数值和（也就是 $a=\prod p_{i}^{c_{i}},\sum c_{i}$）记为 $cnt_{i}$，然后把 $cnt_{i}$ 奇数放左边偶数放右边放出二分图。</p>
+<p>$(S,i\in L,b_{i},0),(i\in R,T,b_{i},0),(i\in L,j\in R,\infty,c_{i}\times c_{j})$</p>
+<p>负数不管。</p>
+<p>fuck everybody here。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+using i64 = long long;
+using pii = std::pair&lt;i64, i64&gt;;
+
+const i64 INF = 1e18;
+const int MAXN = 1e5 + 5, MAXM = 1e6 + 5;
+
+char gtc () { return getchar (); }
+void ptc ( const char x ) { putchar ( x ); }
+
+int rint () {
+	int x = 0, f = 1; char c = gtc ();
+	for ( ; c &lt; &#39;0&#39; || c &gt; &#39;9&#39;; c = gtc () )	f = c == &#39;-&#39; ? -1 : f;
+	for ( ; c &gt;= &#39;0&#39; &amp;&amp; c &lt;= &#39;9&#39;; c = gtc () )	x = ( x &lt;&lt; 3 ) + ( x &lt;&lt; 1 ) + ( c &amp; 15 );
+	return x * f;
+}
+
+template&lt;typename _T&gt; _T imin ( const _T x, const _T y ) { return x &lt; y ? x : y; }
+
+struct Edge { int to, nxt; i64 c, w; } graph[MAXM * 2];
+
+i64 dist[MAXN]; int q[MAXN];
+int n, head[MAXN], cur[MAXN], ecnt = 1, vis[MAXN], tot, idx[MAXN];
+int arA[MAXN], arB[MAXN], arC[MAXN];
+
+void link ( const int u, const int v, const i64 c, const i64 w ) {
+	graph[++ ecnt] = { v, head[u], c, w }, head[u] = ecnt;
+	graph[++ ecnt] = { u, head[v], 0, -w }, head[v] = ecnt;
+}
+
+void mkIdx ( const int x, int&amp; p ) {
+	int bk = x;
+	for ( int i = 2; i * i &lt;= bk; ++ i ) {
+		while ( bk % i == 0 )	p ++, bk /= i;
+	}
+	if ( bk &gt; 1 )	p ++;
+}
+
+bool mkLayer ( const int S, const int T ) {
+	int h = 1, t = 0;
+	for ( int i = 1; i &lt;= tot; ++ i )	dist[i] = INF, vis[i] = 0;
+	dist[q[++ t] = S] = 0, vis[S] = 1;
+	while ( h &lt;= t ) {
+		int u = q[h ++]; vis[u] = 0;
+		for ( int i = head[u]; i; i = graph[i].nxt ) {
+			int v = graph[i].to; i64 c = graph[i].c, w = graph[i].w;
+			if ( c &amp;&amp; dist[v] &gt; dist[u] + w ) {
+				dist[v] = dist[u] + w;
+				if ( ! vis[v] )	vis[q[++ t] = v] = 1;
+			}
+		}
+	}
+	return dist[T] &lt; INF;
+}
+
+i64 mkWide ( const int u, const i64 flow, const int T ) {
+	if ( u == T )	return flow;
+	i64 used = 0; vis[u] = 1;
+	for ( int&amp; i = cur[u]; i; i = graph[i].nxt ) {
+		int v = graph[i].to; i64 c = graph[i].c, w = graph[i].w;
+		if ( c &amp;&amp; dist[v] == dist[u] + w &amp;&amp; ! vis[v] ) {
+			i64 ret = mkWide ( v, imin ( flow - used, c ), T );
+			graph[i].c -= ret, graph[i ^ 1].c += ret, used += ret;
+			if ( flow == used )	break;
+		}
+	}
+	if ( used &lt; flow )	dist[u] = INF;
+	vis[u] = 0; return used;
+}
+
+i64 calcMXflow ( const int S, const int T ) {
+	i64 c = 0, res = 0, delta;
+	while ( mkLayer ( S, T ) ) {
+		for ( int i = 1; i &lt;= tot; ++ i )	cur[i] = head[i], vis[i] = 0;
+		delta = mkWide ( S, INF, T );
+		if ( delta * dist[T] + c &gt; 0 )	return res - c / dist[T];
+		res += delta, c += delta * dist[T];
+	}
+	return res;
+}
+
+bool ck ( const int a, const int b ) { return arA[a] % arA[b] == 0 &amp;&amp; idx[a] - 1 == idx[b]; }
+int main () {
+	n = rint (), tot = n;
+	const int S = ++ tot, T = ++ tot;
+	for ( int i = 1; i &lt;= n; ++ i )	arA[i] = rint (), mkIdx ( arA[i], idx[i] );
+	for ( int i = 1; i &lt;= n; ++ i )	arB[i] = rint ();
+	for ( int i = 1; i &lt;= n; ++ i )	arC[i] = rint ();
+	for ( int i = 1; i &lt;= n; ++ i ) {
+		if ( idx[i] &amp; 1 ) {
+			link ( S, i, arB[i], 0 );
+			for ( int j = 1; j &lt;= n; ++ j ) {
+				if ( ck ( i, j ) || ck ( j, i ) )	link ( i, j, INF, -( i64 )arC[i] * arC[j] );
+			}
+		}
+		else	link ( i, T, arB[i], 0 );
+	}
+	printf ( &quot;%lld\n&quot;, calcMXflow ( S, T ) );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P2045 方格取数加强版 - AC</h3>
+<p>水题。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+#define rep( x, a, b ) for( int (x) = (a); (x) &lt;= (b); (x) ++ )
+#define per( x, a, b ) for( int (x) = (a); (x) &gt;= (b); (x) -- )
+
+const int INF = 1e9;
+const int MAXN = 1e5 + 5, MAXM = 2e5 + 5;
+
+using pii = std::pair&lt;int, int&gt;;
+
+struct Edge { int to, nxt, c, w; } graph[MAXM * 2];
+
+int n, k, head[MAXN], ecnt = 1, dist[MAXN], vis[MAXN], tot, cur[MAXN];
+
+void link ( const int u, const int v, const int c, const int w ) {
+	graph[++ ecnt] = { v, head[u], c, w }, head[u] = ecnt;
+	graph[++ ecnt] = { u, head[v], 0, -w }, head[v] = ecnt;
+}
+
+int tr ( const int x, const int y ) { return ( x - 1 ) * n + y; }
+
+std::queue&lt;int&gt; q;
+bool mkLayer ( const int S, const int T ) {
+	rep ( i, 1, tot )	dist[i] = INF, vis[i] = 0;
+	q.push ( S ), dist[S] = 0, vis[S] = 1;
+	while ( ! q.empty () ) {
+		int u = q.front (); q.pop (); vis[u] = 0;
+		for ( int i = head[u]; i; i = graph[i].nxt ) {
+			int v = graph[i].to, c = graph[i].c, w = graph[i].w;
+			if ( c &amp;&amp; dist[v] &gt; dist[u] + w ) {
+				dist[v] = dist[u] + w;
+				if ( ! vis[v] )	q.push ( v ), vis[v] = 1;
+			}
+		}
+	}
+	return dist[T] &lt; INF;
+}
+
+int mkWide ( const int u, const int flow, const int T, int&amp; cst ) {
+	if ( u == T )	return flow;
+	int used = 0; vis[u] = 1;
+	for ( int&amp; i = cur[u]; i; i = graph[i].nxt ) {
+		int v = graph[i].to, c = graph[i].c, w = graph[i].w;
+		if ( c &amp;&amp; dist[v] == dist[u] + w &amp;&amp; ! vis[v] ) {
+			int ret = mkWide ( v, std::min ( flow - used, c ), T, cst );
+			graph[i].c -= ret, graph[i ^ 1].c += ret, used += ret, cst += ret * w;
+			if ( flow == used )	break;
+		}
+	}
+	if ( used &lt; flow )	dist[u] = INF;
+	vis[u] = 0; return used;
+}
+
+pii calcMXflow ( const int S, const int T ) {
+	int resf = 0, resw = 0;
+	while ( mkLayer ( S, T ) ) {
+		rep ( i, 1, tot )	cur[i] = head[i], vis[i] = 0;
+		resf += mkWide ( S, INF, T, resw );
+	}
+	return { resf, resw };
+}
+
+int main () {
+	std::ios::sync_with_stdio ( 0 ); std::cin.tie ( 0 ); std::cout.tie ( 0 );
+	std::cin &gt;&gt; n &gt;&gt; k; tot = n * n * 2;
+	const int S = ++ tot, T = ++ tot;
+	link ( S, tr ( 1, 1 ), k, 0 );
+	rep ( i, 1, n ) rep ( j, 1, n ) {
+		int c; std::cin &gt;&gt; c;
+		link ( tr ( i, j ), tr ( i, j ) + n * n, 1, -c );
+		link ( tr ( i, j ), tr ( i, j ) + n * n, INF, 0 );
+		if ( i &lt; n )	link ( tr ( i, j ) + n * n, tr ( i + 1, j ), INF, 0 );
+		if ( j &lt; n )	link ( tr ( i, j ) + n * n, tr ( i, j + 1 ), INF, 0 );
+	}
+	link ( tr ( n, n ) + n * n, T, k, 0 );
+	std::cout &lt;&lt; calcMXflow ( S, T ).second * -1 &lt;&lt; &#39;\n&#39;;
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>LOC5290 网络流 24 题 深海机器人问题 - AC</h3>
+<p>水题。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+#define rep( x, a, b ) for( int (x) = (a); (x) &lt;= (b); (x) ++ )
+#define per( x, a, b ) for( int (x) = (a); (x) &gt;= (b); (x) -- )
+
+const int INF = 1e9;
+const int MAXN = 1e5 + 5, MAXM = 1e6 + 5;
+
+using pii = std::pair&lt;int, int&gt;;
+
+struct Edge { int to, nxt, c, w; } graph[MAXM * 2];
+
+int pS, pT, n, m, head[MAXN], ecnt = 1, dist[MAXN], vis[MAXN], Cur[MAXN], tot;
+
+void link ( const int u, const int v, const int c, const int w ) {
+	graph[++ ecnt] = { v, head[u], c, w }, head[u] = ecnt;
+	graph[++ ecnt] = { u, head[v], 0, -w }, head[v] = ecnt;
+}
+
+int tr ( const int x, const int y ) { return ( x - 1 ) * m + y; }
+
+std::queue&lt;int&gt; q;
+bool mkLayer ( const int S, const int T ) {
+	rep ( i, 1, tot )	dist[i] = INF, vis[i] = 0;
+	q.push ( S ), dist[S] = 0, vis[S] = 1;
+	while ( ! q.empty () ) {
+		int u = q.front (); q.pop (); vis[u] = 0;
+		for ( int i = head[u]; i; i = graph[i].nxt ) {
+			int v = graph[i].to, c = graph[i].c, w = graph[i].w;
+			if ( c &amp;&amp; dist[v] &gt; dist[u] + w ) {
+				dist[v] = dist[u] + w;
+				if ( ! vis[v] )	q.push ( v ), vis[v] = 1;
+			}
+		}
+	}
+	return dist[T] &lt; INF;
+}
+
+int mkWide ( const int u, const int flow, const int T, int&amp; cst ) {
+	if ( u == T )	return flow;
+	int used = 0; vis[u] = 1;
+	for ( int&amp; i = Cur[u]; i; i = graph[i].nxt ) {
+		int v = graph[i].to, c = graph[i].c, w = graph[i].w;
+		if ( c &amp;&amp; dist[v] == dist[u] + w &amp;&amp; ! vis[v] ) {
+			int ret = mkWide ( v, std::min ( flow - used, c ), T, cst );
+			graph[i].c -= ret, graph[i ^ 1].c += ret, used += ret, cst += ret * w;
+			if ( flow == used )	break;
+		}
+	}
+	if ( used &lt; flow )	dist[u] = INF;
+	vis[u] = 0; return used;
+}
+
+pii calcMXflow ( const int S, const int T ) {
+	int resf = 0, resw = 0;
+	while ( mkLayer ( S, T ) ) {
+		rep ( i, 1, tot )	Cur[i] = head[i], vis[i] = 0;
+		resf += mkWide ( S, INF, T, resw );
+	}
+	return { resf, resw };
+}
+
+int main () {
+	std::ios::sync_with_stdio ( 0 ); std::cin.tie ( 0 ); std::cout.tie ( 0 );
+	std::cin &gt;&gt; pS &gt;&gt; pT &gt;&gt; n &gt;&gt; m; tot = ( ++ n ) * ( ++ m );
+	const int S = ++ tot, T = ++ tot;
+	rep ( i, 1, n ) rep ( j, 1, m - 1 ) {
+		int c; std::cin &gt;&gt; c;
+		link ( tr ( i, j ), tr ( i, j + 1 ), 1, -c );
+		link ( tr ( i, j ), tr ( i, j + 1 ), INF, 0 );
+	}
+	rep ( j, 1, m ) rep ( i, 1, n - 1 ) {
+		int c; std::cin &gt;&gt; c;
+		link ( tr ( i, j ), tr ( i + 1, j ), 1, -c );
+		link ( tr ( i, j ), tr ( i + 1, j ), INF, 0 );
+	}
+	rep ( i, 1, pS ) { int k, x, y;
+		std::cin &gt;&gt; k &gt;&gt; x &gt;&gt; y;
+		link ( S, tr ( x + 1, y + 1 ), k, 0 );
+	}
+	rep ( i, 1, pT ) { int k, x, y;
+		std::cin &gt;&gt; k &gt;&gt; x &gt;&gt; y;
+		link ( tr ( x + 1, y + 1 ), T, k, 0 );
+	}
+	std::cout &lt;&lt; calcMXflow ( S, T ).second * -1 &lt;&lt; &#39;\n&#39;;
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>LOC5126 网络流 24 题 餐巾计划 - AC</h3>
+<p>好。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+#define rep( x, a, b ) for( int (x) = (a); (x) &lt;= (b); (x) ++ )
+#define per( x, a, b ) for( int (x) = (a); (x) &gt;= (b); (x) -- )
+
+const int INF = 1e9;
+const int MAXN = 1e5 + 5, MAXM = 1e6 + 5;
+
+using pii = std::pair&lt;int, int&gt;;
+
+struct Edge { int to, nxt, c, w; } graph[MAXM * 2];
+
+int p, m, f, n, s, head[MAXN], ecnt = 1, dist[MAXN], vis[MAXN], tot, Cur[MAXN];
+
+void link ( const int u, const int v, const int c, const int w ) {
+	graph[++ ecnt] = { v, head[u], c, w }, head[u] = ecnt;
+	graph[++ ecnt] = { u, head[v], 0, -w }, head[v] = ecnt;
+}
+
+std::queue&lt;int&gt; q;
+bool mkLayer ( const int S, const int T ) {
+	rep ( i, 1, tot )	dist[i] = INF, vis[i] = 0;
+	q.push ( S ), dist[S] = 0, vis[S] = 1;
+	while ( ! q.empty () ) {
+		int u = q.front (); q.pop (); vis[u] = 0;
+		for ( int i = head[u]; i; i = graph[i].nxt ) {
+			int v = graph[i].to, c = graph[i].c, w = graph[i].w;
+			if ( c &amp;&amp; dist[v] &gt; dist[u] + w ) {
+				dist[v] = dist[u] + w;
+				if ( ! vis[v] )	q.push ( v ), vis[v] = 1;
+			}
+		}
+	}
+	return dist[T] &lt; INF;
+}
+
+int mkWide ( const int u, const int flow, const int T, int&amp; cst ) {
+	if ( u == T )	return flow;
+	int used = 0; vis[u] = 1;
+	for ( int&amp; i = Cur[u]; i; i = graph[i].nxt ) {
+		int v = graph[i].to, c = graph[i].c, w = graph[i].w;
+		if ( c &amp;&amp; dist[v] == dist[u] + w &amp;&amp; ! vis[v] ) {
+			int ret = mkWide ( v, std::min ( flow - used, c ), T, cst );
+			graph[i].c -= ret, graph[i ^ 1].c += ret, used += ret, cst += ret * w;
+			if ( flow == used )	break;
+		}
+	}
+	if ( used &lt; flow )	dist[u] = INF;
+	vis[u] = 0; return used;
+}
+
+pii calcMXflow ( const int S, const int T ) {
+	int resf = 0, resw = 0;
+	while ( mkLayer ( S, T ) ) {
+		if ( dist[T] &gt;= 0 )	break;
+		rep ( i, 1, tot )	Cur[i] = head[i], vis[i] = 0;
+		resf += mkWide ( S, INF, T, resw );
+	}
+	return { resf, resw };
+}
+
+int main () {
+	std::ios::sync_with_stdio ( 0 ); std::cin.tie ( 0 ); std::cout.tie ( 0 );
+	int days; std::cin &gt;&gt; days; tot = days &lt;&lt; 1;
+	std::cin &gt;&gt; p &gt;&gt; m &gt;&gt; f &gt;&gt; n &gt;&gt; s;
+	const int S = ++ tot, T = ++ tot; int all = 0;
+	rep ( i, 1, days ) { int r; std::cin &gt;&gt; r; all += r; link ( S, i, r, 0 ); link ( i + days, T, r, 0 ); }
+	rep ( i, 1, days ) {
+		if ( i + m &lt;= days )	link ( i, i + days + m, INF, -p + f );
+		if ( i + n &lt;= days )	link ( i, i + days + n, INF, -p + s );
+		if ( i + 1 &lt;= days )	link ( i + days, i + days + 1, INF, 0 );
+	}
+	std::cout &lt;&lt; calcMXflow ( S, T ).second + all * p &lt;&lt; &#39;\n&#39;;
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>LOC5127 网络流 24 题 数字梯形 - AC</h3>
+<p>一般。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+#define rep( x, a, b ) for( int (x) = (a); (x) &lt;= (b); (x) ++ )
+#define per( x, a, b ) for( int (x) = (a); (x) &gt;= (b); (x) -- )
+
+using pii = std::pair&lt;int, int&gt;;
+
+const int INF = 1e9;
+const int MAXN = 1e5 + 5, MAXM = 1e6 + 5, MAXS = 1e3 + 5;
+
+struct Edge { int to, nxt, c, w; } graph[MAXM * 2];
+
+int n, m, head[MAXN], Cur[MAXN], ecnt = 1, dist[MAXN], vis[MAXN], ID[MAXS][MAXS], tot;
+
+void link ( const int u, const int v, const int c, const int w ) {
+	graph[++ ecnt] = { v, head[u], c, w }, head[u] = ecnt;
+	graph[++ ecnt] = { u, head[v], 0, -w }, head[v] = ecnt;
+}
+
+void irAuged () { for ( int i = 2; i &lt;= ecnt; i += 2 )	graph[i].c += graph[i ^ 1].c, graph[i ^ 1].c = 0; }
+
+std::queue&lt;int&gt; q;
+bool mkLayer ( const int S, const int T ) {
+	rep ( i, 1, tot )	dist[i] = INF, vis[i] = 0;
+	q.push ( S ), dist[S] = 0, vis[S] = 1;
+	while ( ! q.empty () ) {
+		int u = q.front (); q.pop (); vis[u] = 0;
+		for ( int i = head[u]; i; i = graph[i].nxt ) {
+			int v = graph[i].to, c = graph[i].c, w = graph[i].w;
+			if ( c &amp;&amp; dist[v] &gt; dist[u] + w ) {
+				dist[v] = dist[u] + w;
+				if ( ! vis[v] )	q.push ( v ), vis[v] = 1;
+			}
+		}
+	}
+	return dist[T] &lt; INF;
+}
+
+int mkWide ( const int u, const int flow, const int T, int&amp; cst ) {
+	if ( u == T )	return flow;
+	int used = 0; vis[u] = 1;
+	for ( int&amp; i = Cur[u]; i; i = graph[i].nxt ) {
+		int v = graph[i].to, c = graph[i].c, w = graph[i].w;
+		if ( c &amp;&amp; dist[v] == dist[u] + w &amp;&amp; ! vis[v] ) {
+			int ret = mkWide ( v, std::min ( flow - used, c ), T, cst );
+			graph[i].c -= ret, graph[i ^ 1].c += ret, used += ret, cst += ret * w;
+			if ( flow == used )	break;
+		}
+	}
+	if ( used &lt; flow )	dist[u] = INF;
+	vis[u] = 0; return used;
+}
+
+pii calcMXflow ( const int S, const int T ) {
+	int resf = 0, resw = 0;
+	while ( mkLayer ( S, T ) ) {
+		rep ( i, 1, tot )	Cur[i] = head[i], vis[i] = 0;
+		resf += mkWide ( S, INF, T, resw );
+	}
+	return { resf, resw };
+}
+
+int main () {
+	std::ios::sync_with_stdio ( 0 ); std::cin.tie ( 0 ); std::cout.tie ( 0 );
+	std::cin &gt;&gt; m &gt;&gt; n; const int exist = ( n + ( m &lt;&lt; 1 ) - 1 ) * n &gt;&gt; 1;
+	rep ( i, 1, n ) rep ( j, 1, i + m - 1 )	ID[i][j] = ++ tot;
+	tot += exist; const int S = ++ tot, T = ++ tot;
+	rep ( i, 1, n ) rep ( j, 1, i + m - 1 ) { int c;
+		std::cin &gt;&gt; c; link ( ID[i][j], ID[i][j] + exist, 1, -c );
+	}
+	rep ( i, 1, n - 1 ) rep ( j, 1, i + m - 1 )
+		link ( ID[i][j] + exist, ID[i + 1][j], 1, 0 ), link ( ID[i][j] + exist, ID[i + 1][j + 1], 1, 0 );
+	rep ( i, 1, m )	link ( S, ID[1][i], 1, 0 );
+	rep ( i, 1, n + m - 1 )	link ( ID[n][i] + exist, T, INF, 0 );
+	std::cout &lt;&lt; calcMXflow ( S, T ).second * -1 &lt;&lt; &#39;\n&#39;; irAuged ();
+	rep ( i, 1, n ) rep ( j, 1, i + m - 1 ) {
+		for ( int k = head[ID[i][j]]; k; k = graph[k].nxt ) {
+			int v = graph[k].to; int&amp; c = graph[k].c;
+			if ( v == ID[i][j] + exist )	c = INF;
+		}
+	}
+	std::cout &lt;&lt; calcMXflow ( S, T ).second * -1 &lt;&lt; &#39;\n&#39;; irAuged ();
+	rep ( i, 1, n - 1 ) rep ( j, 1, i + m - 1 ) {
+		for ( int k = head[ID[i][j] + exist]; k; k = graph[k].nxt ) {
+			int v = graph[k].to; int&amp; c = graph[k].c;
+			if ( v == ID[i + 1][j] || v == ID[i + 1][j + 1] )	c = INF;
+		}
+	}
+	std::cout &lt;&lt; calcMXflow ( S, T ).second * -1 &lt;&lt; &#39;\n&#39;;
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P3980 [NOI2008] 志愿者招募 - AC</h3>
+<p>一个人造成的贡献是一个区间。</p>
+<p>然后按时间连边。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+#define rep( x, a, b ) for( int (x) = (a); (x) &lt;= (b); (x) ++ )
+#define per( x, a, b ) for( int (x) = (a); (x) &gt;= (b); (x) -- )
+
+using i64 = long long;
+using pii = std::pair&lt;i64, i64&gt;;
+
+const i64 INF = 1e18;
+const int MAXN = 1e5 + 5, MAXM = 1e6 + 5;
+
+struct Edge { int to, nxt; i64 c, w; } graph[MAXM * 2];
+
+i64 dist[MAXN]; bool vis[MAXN];
+int n, m, head[MAXN], ecnt = 1, Cur[MAXN], tot;
+
+void link ( const int u, const int v, const i64 c, const i64 w ) {
+	graph[++ ecnt] = { v, head[u], c, w }, head[u] = ecnt;
+	graph[++ ecnt] = { u, head[v], 0, -w }, head[v] = ecnt;
+}
+
+std::queue&lt;int&gt; q;
+bool mkLayer ( const int S, const int T ) {
+	for ( int i = 1; i &lt;= tot; ++ i )	dist[i] = INF, vis[i] = 0;
+	q.push ( S ), dist[S] = 0, vis[S] = 1;
+	while ( ! q.empty () ) {
+		int u = q.front (); q.pop (); vis[u] = 0;
+		for ( int i = head[u]; i; i = graph[i].nxt ) {
+			int v = graph[i].to; i64 c = graph[i].c, w = graph[i].w;
+			if ( c &amp;&amp; dist[v] &gt; dist[u] + w ) {
+				dist[v] = dist[u] + w;
+				if ( ! vis[v] )	q.push ( v ), vis[v] = 1;
+			}
+		}
+	}
+	return dist[T] &lt; INF;
+}
+
+i64 mkWide ( const int u, const i64 flow, const int T, i64&amp; cst ) {
+	if ( u == T )	return flow;
+	i64 used = 0; vis[u] = 1;
+	for ( int&amp; i = Cur[u]; i; i = graph[i].nxt ) {
+		int v = graph[i].to; i64 c = graph[i].c, w = graph[i].w;
+		if ( c &amp;&amp; dist[v] == dist[u] + w &amp;&amp; ! vis[v] ) {
+			i64 ret = mkWide ( v, std::min ( flow - used, c ), T, cst );
+			graph[i].c -= ret, graph[i ^ 1].c += ret, used += ret, cst += ret * w;
+			if ( flow == used )	break;
+		}
+	}
+	if ( used &lt; flow )	dist[u] = INF;
+	vis[u] = 0; return used;
+}
+
+pii calcMXflow ( const int S, const int T ) {
+	i64 resf = 0, resw = 0;
+	while ( mkLayer ( S, T ) ) {
+		rep ( i, 1, tot )	Cur[i] = head[i], vis[i] = 0;
+		resf += mkWide ( S, INF, T, resw );
+	}
+	return { resf, resw };
+}
+
+int main () {
+	std::ios::sync_with_stdio ( 0 ); std::cin.tie ( 0 ); std::cout.tie ( 0 );
+	std::cin &gt;&gt; n &gt;&gt; m; tot = n + 1; const int S = ++ tot, T = ++ tot;
+	link ( S, 1, n * m, 0 ), link ( n + 1, T, n * m, 0 );
+	rep ( i, 1, n ) { int c; std::cin &gt;&gt; c; link ( i, i + 1, n * m - c, 0 ); }
+	rep ( i, 1, m ) { int s, t, c;
+		std::cin &gt;&gt; s &gt;&gt; t &gt;&gt; c;
+		link ( s, t + 1, n * m, c );
+	}
+	std::cout &lt;&lt; calcMXflow ( S, T ).second &lt;&lt; &#39;\n&#39;;
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>ACW338 计数问题 - AC</h3>
+<p>水题。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+#define rep( x, a, b ) for( int (x) = (a); (x) &lt;= (b); (x) ++ )
+#define per( x, a, b ) for( int (x) = (a); (x) &gt;= (b); (x) -- )
+
+using i64 = long long;
+
+i64 L, R, f[30][30];
+int len, nums[30];
+
+i64 DP ( const int pos, const int lim, const int pre, const int sum, const int aim ) {
+	if ( pos &gt; len )	return sum;
+	if ( ! pre &amp;&amp; ! lim &amp;&amp; ~ f[pos][sum] )	return f[pos][sum];
+	int mx = lim ? nums[len - pos + 1] : 9; i64 res = 0;
+	rep ( i, 0, mx )	res += DP ( pos + 1, lim &amp;&amp; i == mx, pre &amp;&amp; ! i, sum + ( aim == i &amp;&amp; ( i || ( ! i &amp;&amp; ! pre ) ) ), aim );
+	if ( ! lim &amp;&amp; ! pre )	f[pos][sum] = res;
+	return res;
+}
+
+i64 solve ( const int aim, i64 x ) {
+	memset ( f, -1, sizeof f ), len = 0;
+	for ( ; x; x /= 10 )	nums[++ len] = x % 10;
+	return DP ( 1, 1, 1, 0, aim );
+}
+
+int main () {
+	std::ios::sync_with_stdio ( 0 ); std::cin.tie ( 0 ); std::cout.tie ( 0 );
+	while ( std::cin &gt;&gt; L &gt;&gt; R &amp;&amp; ! std::cin.eof () ) {
+		if ( ! L &amp;&amp; ! R )	break;
+		if ( L &gt; R )	std::swap ( L, R );
+		rep ( i, 0, 9 )	std::cout &lt;&lt; solve ( i, R ) - solve ( i, L - 1 ) &lt;&lt; &#39; &#39;;
+		std::cout &lt;&lt; &#39;\n&#39;;
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>BZOJ3329 Xorequ - AC</h3>
+<p>手化方程，找性质。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+#define rep( x, a, b ) for( int (x) = (a); (x) &lt;= (b); (x) ++ )
+#define per( x, a, b ) for( int (x) = (a); (x) &gt;= (b); (x) -- )
+
+using i64 = long long;
+
+const int MOD = 1e9 + 7;
+const int S = 2;
+
+struct Matrix { int c[S + 5][S + 5]; Matrix () { memset ( c, 0, sizeof c ); } } trans;
+
+i64 n, f[100];
+int nums[100], len;
+
+int add ( const int a, const int b ) { return a + b &lt; MOD ? a + b : ( a + b ) % MOD; }
+int mul ( const i64 a, const i64 b ) { return a * b % MOD; }
+Matrix times ( Matrix a, Matrix b ) {
+	Matrix res;
+	rep ( i, 0, S - 1 ) rep ( j, 0, S - 1 ) rep ( k, 0, S - 1 )
+		res.c[i][j] = add ( res.c[i][j], mul ( a.c[i][k], b.c[k][j] ) );
+	return res;
+}
+
+Matrix cpow ( Matrix bas, i64 idx ) {
+	Matrix res;
+	rep ( i, 0, S - 1 )	res.c[i][i] = 1;
+	while ( idx ) {
+		if ( idx &amp; 1 )	res = times ( res, bas );
+		bas = times ( bas, bas ), idx &gt;&gt;= 1;
+	}
+	return res;
+}
+
+int main () {
+	std::ios::sync_with_stdio ( 0 ); std::cin.tie ( 0 ); std::cout.tie ( 0 );
+	int T; std::cin &gt;&gt; T;
+	f[1] = 1; rep ( i, 2, 64 )	f[i] = f[i - 1] + f[i - 2];
+	trans.c[0][0] = trans.c[0][1] = trans.c[1][0] = 1; i64 ans = 0;
+	while ( T -- &gt; 0 ) {
+		std::cin &gt;&gt; n; len = 0;
+		auto tmp = ++ n;
+		for ( ; tmp; tmp &gt;&gt;= 1 )	nums[++ len] = tmp &amp; 1;
+		nums[len + 1] = ans =0;
+		per ( i, len, 1 ) {
+			if ( nums[i] )	ans += f[i + 1];
+			if ( nums[i] &amp;&amp; nums[i + 1] )	break;
+		}
+		std::cout &lt;&lt; ans - 1 &lt;&lt; &#39;\n&#39; &lt;&lt; cpow ( trans, n ).c[0][0] &lt;&lt; &#39;\n&#39;;
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P2053 [SCOI2007]修车 - AC</h3>
+<p>一个工人拆成各个时间段的，然后肆意连边。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+#define rep( x, a, b ) for( int (x) = (a); (x) &lt;= (b); (x) ++ )
+#define per( x, a, b ) for( int (x) = (a); (x) &gt;= (b); (x) -- )
+
+using pii = std::pair&lt;int, int&gt;;
+
+const int INF = 1e9;
+const int MAXN = 1e5 + 5, MAXM = 1e6 + 6;
+
+struct Edge { int to, nxt, c, w; } graph[MAXM * 2];
+
+int n, m, head[MAXN], Cur[MAXN], ecnt = 1, dist[MAXN], vis[MAXN], tot;
+
+void link ( const int u, const int v, const int c, const int w ) {
+	graph[++ ecnt] = { v, head[u], c, w }, head[u] = ecnt;
+	graph[++ ecnt] = { u, head[v], 0, -w }, head[v] = ecnt;
+}
+
+int hs ( const int x, const int y ) { return ( x - 1 ) * n + y; }
+
+std::queue&lt;int&gt; q;
+bool mkLayer ( const int S, const int T ) {
+	rep ( i, 1, tot )	dist[i] = INF, vis[i] = 0;
+	q.push ( S ), dist[S] = 0, vis[S] = 1;
+	while ( ! q.empty () ) {
+		int u = q.front (); q.pop (); vis[u] = 0;
+		for ( int i = head[u]; i; i = graph[i].nxt ) {
+			int v = graph[i].to, c = graph[i].c, w = graph[i].w;
+			if ( c &amp;&amp; dist[v] &gt; dist[u] + w ) {
+				dist[v] = dist[u] + w;
+				if ( ! vis[v] )	q.push ( v ), vis[v] = 1;
+			}
+		}
+	}
+	return dist[T] &lt; INF;
+}
+
+int mkWide ( const int u, const int flow, const int T, int&amp; cst ) {
+	if ( u == T )	return flow;
+	int used = 0; vis[u] = 1;
+	for ( int&amp; i = Cur[u]; i; i = graph[i].nxt ) {
+		int v = graph[i].to, c = graph[i].c, w = graph[i].w;
+		if ( c &amp;&amp; dist[v] == dist[u] + w &amp;&amp; ! vis[v] ) {
+			int ret = mkWide ( v, std::min ( flow - used, c ), T, cst );
+			graph[i].c -= ret, graph[i ^ 1].c += ret, used += ret, cst += ret * w;
+			if ( flow == used )	break;
+		}
+	}
+	if ( used &lt; flow )	dist[u] = INF;
+	vis[u] = 0; return used;
+}
+
+pii calcMXflow ( const int S, const int T ) {
+	int resf = 0, resw = 0;
+	while ( mkLayer ( S, T ) ) {
+		rep ( i, 1, tot )	Cur[i] = head[i], vis[i] = 0;
+		resf += mkWide ( S, INF, T, resw );
+	}
+	return { resf, resw };
+}
+
+int main () {
+	std::ios::sync_with_stdio ( 0 ); std::cin.tie ( 0 ); std::cout.tie ( 0 );
+	std::cin &gt;&gt; m &gt;&gt; n; tot = n * m + n;
+	const int S = ++ tot, T = ++ tot;
+	rep ( j, 1, n ) rep ( i, 1, m ) { int c;
+		std::cin &gt;&gt; c; rep ( k, 1, n )	link ( j, hs ( i, k ) + n, 1, c * k );
+	}
+	rep ( i, 1, n )	link ( S, i, 1, 0 );
+	rep ( i, 1, m ) rep ( j, 1, n )	link ( hs ( i, j ) + n, T, 1, 0 );
+	std::cout &lt;&lt; std::fixed &lt;&lt; std::setprecision ( 2 ) &lt;&lt; 1.0 * calcMXflow ( S, T ).second / n &lt;&lt; &#39;\n&#39;;
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P2153 [SDOI2009]晨跑 - AC</h3>
+<p>流 板（经 典 重 现）。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+#define rep( x, a, b ) for( int (x) = (a); (x) &lt;= (b); (x) ++ )
+#define per( x, a, b ) for( int (x) = (a); (x) &gt;= (b); (x) -- )
+
+using pii = std::pair&lt;int, int&gt;;
+
+const int INF = 1e9;
+const int MAXN = 1e5 + 5, MAXM = 1e6 + 6;
+
+struct Edge { int to, nxt, c, w; } graph[MAXM * 2];
+
+int n, m, head[MAXN], Cur[MAXN], ecnt = 1, dist[MAXN], vis[MAXN], tot;
+
+void link ( const int u, const int v, const int c, const int w ) {
+	graph[++ ecnt] = { v, head[u], c, w }, head[u] = ecnt;
+	graph[++ ecnt] = { u, head[v], 0, -w }, head[v] = ecnt;
+}
+
+std::queue&lt;int&gt; q;
+bool mkLayer ( const int S, const int T ) {
+	rep ( i, 1, tot )	dist[i] = INF, vis[i] = 0;
+	q.push ( S ), dist[S] = 0, vis[S] = 1;
+	while ( ! q.empty () ) {
+		int u = q.front (); q.pop (); vis[u] = 0;
+		for ( int i = head[u]; i; i = graph[i].nxt ) {
+			int v = graph[i].to, c = graph[i].c, w = graph[i].w;
+			if ( c &amp;&amp; dist[v] &gt; dist[u] + w ) {
+				dist[v] = dist[u] + w;
+				if ( ! vis[v] )	q.push ( v ), vis[v] = 1;
+			}
+		}
+	}
+	return dist[T] &lt; INF;
+}
+
+int mkWide ( const int u, const int flow, const int T, int&amp; cst ) {
+	if ( u == T )	return flow;
+	int used = 0; vis[u] = 1;
+	for ( int&amp; i = Cur[u]; i; i = graph[i].nxt ) {
+		int v = graph[i].to, c = graph[i].c, w = graph[i].w;
+		if ( c &amp;&amp; dist[v] == dist[u] + w &amp;&amp; ! vis[v] ) {
+			int ret = mkWide ( v, std::min ( flow - used, c ), T, cst );
+			graph[i].c -= ret, graph[i ^ 1].c += ret, used += ret, cst += ret * w;
+			if ( flow == used )	break;
+		}
+	}
+	if ( used &lt; flow )	dist[u] = INF;
+	vis[u] = 0; return used;
+}
+
+pii calcMXflow ( const int S, const int T ) {
+	int resf = 0, resw = 0;
+	while ( mkLayer ( S, T ) ) {
+		rep ( i, 1, tot )	Cur[i] = head[i], vis[i] = 0;
+		resf += mkWide ( S, INF, T, resw );
+	}
+	return { resf, resw };
+}
+
+int main () {
+	std::ios::sync_with_stdio ( 0 ); std::cin.tie ( 0 ); std::cout.tie ( 0 );
+	std::cin &gt;&gt; n &gt;&gt; m; tot = n &lt;&lt; 1;
+	rep ( i, 1, m ) { int u, v, c;
+		std::cin &gt;&gt; u &gt;&gt; v &gt;&gt; c;
+		if ( u == 1 &amp;&amp; v == n )	link ( u + n, v, 1, c );
+		else	link ( u + n, v, INF, c );
+	}
+	rep ( i, 1, n )	link ( i, i + n, 1, 0 );
+	pii ret = calcMXflow ( n + 1, n );
+	std::cout &lt;&lt; ret.first &lt;&lt; &#39; &#39; &lt;&lt; ret.second &lt;&lt; &#39;\n&#39;;
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P2517 [HAOI2010]订货 - AC</h3>
+<p>流 板（经 典 再 重 现）。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+#define rep( x, a, b ) for( int (x) = (a); (x) &lt;= (b); (x) ++ )
+#define per( x, a, b ) for( int (x) = (a); (x) &gt;= (b); (x) -- )
+
+using pii = std::pair&lt;int, int&gt;;
+
+const int INF = 1e9;
+const int MAXN = 1e5 + 5, MAXM = 1e6 + 6;
+
+struct Edge { int to, nxt, c, w; } graph[MAXM * 2];
+
+int n, m, sp, head[MAXN], Cur[MAXN], ecnt = 1, dist[MAXN], vis[MAXN], tot;
+
+void link ( const int u, const int v, const int c, const int w ) {
+	graph[++ ecnt] = { v, head[u], c, w }, head[u] = ecnt;
+	graph[++ ecnt] = { u, head[v], 0, -w }, head[v] = ecnt;
+}
+
+std::queue&lt;int&gt; q;
+bool mkLayer ( const int S, const int T ) {
+	rep ( i, 1, tot )	dist[i] = INF, vis[i] = 0;
+	q.push ( S ), dist[S] = 0, vis[S] = 1;
+	while ( ! q.empty () ) {
+		int u = q.front (); q.pop (); vis[u] = 0;
+		for ( int i = head[u]; i; i = graph[i].nxt ) {
+			int v = graph[i].to, c = graph[i].c, w = graph[i].w;
+			if ( c &amp;&amp; dist[v] &gt; dist[u] + w ) {
+				dist[v] = dist[u] + w;
+				if ( ! vis[v] )	q.push ( v ), vis[v] = 1;
+			}
+		}
+	}
+	return dist[T] &lt; INF;
+}
+
+int mkWide ( const int u, const int flow, const int T, int&amp; cst ) {
+	if ( u == T )	return flow;
+	int used = 0; vis[u] = 1;
+	for ( int&amp; i = Cur[u]; i; i = graph[i].nxt ) {
+		int v = graph[i].to, c = graph[i].c, w = graph[i].w;
+		if ( c &amp;&amp; dist[v] == dist[u] + w &amp;&amp; ! vis[v] ) {
+			int ret = mkWide ( v, std::min ( flow - used, c ), T, cst );
+			graph[i].c -= ret, graph[i ^ 1].c += ret, used += ret, cst += ret * w;
+			if ( flow == used )	break;
+		}
+	}
+	if ( used &lt; flow )	dist[u] = INF;
+	vis[u] = 0; return used;
+}
+
+pii calcMXflow ( const int S, const int T ) {
+	int resf = 0, resw = 0;
+	while ( mkLayer ( S, T ) ) {
+		rep ( i, 1, tot )	Cur[i] = head[i], vis[i] = 0;
+		resf += mkWide ( S, INF, T, resw );
+	}
+	return { resf, resw };
+}
+
+int main () {
+	std::ios::sync_with_stdio ( 0 ); std::cin.tie ( 0 ); std::cout.tie ( 0 );
+	std::cin &gt;&gt; n &gt;&gt; m &gt;&gt; sp; tot = n;
+	const int S = ++ tot, T = ++ tot;
+	rep ( i, 1, n ) { int c; std::cin &gt;&gt; c; link ( i, T, c, 0 ); if ( i &lt; n )	link ( i, i + 1, sp, m ); }
+	rep ( i, 1, n ) { int c; std::cin &gt;&gt; c; link ( S, i, INF, c ); }
+	std::cout &lt;&lt; calcMXflow ( S, T ).second &lt;&lt; &#39;\n&#39;;
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>AT4994 [AGC034D] Manhattan Max Matching - AC</h3>
+<p>我神 tm 直接拆曼哈顿距离。</p>
+<details>
+
+<pre><code class="language-cpp">// dist((x1, y1), (x2, y2)) = |x1-x2|+|y1-y2|
+//							  max{x1-x2+y1-y2, x2-x1+y1-y2, x1-x2-y1+y2, x2-x1-y1+y2}
+//							  max{x1+y1-x2-y2, -x1+y1+x2-y2, x1-y1-x2+y2, -x1-y1+x2+y2}
+
+#include &lt;bits/stdc++.h&gt;
+
+#define rep( x, a, b ) for ( int x = (a); x &lt;= (b); (x) ++ )
+#define per( x, a, b ) for ( int x = (a); x &gt;= (b); (x) -- )
+
+using i64 = long long;
+using pii = std::pair&lt;int, i64&gt;;
+
+const int INF = 1e9; const i64 INF64 = 1e18;
+const int MAXN = 1e5 + 5, MAXM = 1e6 + 5;
+
+struct Edge { int to, nxt, c; i64 w; } graph[MAXM * 2];
+
+i64 dist[MAXN]; bool vis[MAXN];
+int n, head[MAXN], Cur[MAXN], ecnt = 1, tot;
+
+void link ( const int u, const int v, const int c, const i64 w ) {
+	graph[++ ecnt] = { v, head[u], c, w }, head[u] = ecnt;
+	graph[++ ecnt] = { u, head[v], 0, -w }, head[v] = ecnt;
+}
+
+std::queue&lt;int&gt; q;
+bool mkLayer ( const int S, const int T ) {
+	rep ( i, 1, tot )	dist[i] = INF64, vis[i] = 0;
+	q.push ( S ), dist[S] = 0, vis[S] = 1;
+	while ( ! q.empty () ) {
+		int u = q.front (); q.pop (); vis[u] = 0;
+		for ( int i = head[u]; i; i = graph[i].nxt ) {
+			int v = graph[i].to, c = graph[i].c; i64 w = graph[i].w;
+			if ( c &amp;&amp; dist[v] &gt; dist[u] + w ) {
+				dist[v] = dist[u] + w;
+				if ( ! vis[v] )	q.push ( v ), vis[v] = 1;
+			}
+		}
+	}
+	return dist[T] &lt; INF64;
+}
+
+int mkWide ( const int u, const int flow, const int T, i64&amp; cst ) {
+	if ( u == T )	return flow;
+	int used = 0; vis[u] = 1;
+	for ( int&amp; i = Cur[u]; i; i = graph[i].nxt ) {
+		int v = graph[i].to, c = graph[i].c; i64 w = graph[i].w;
+		if ( c &amp;&amp; dist[v] == dist[u] + w &amp;&amp; ! vis[v] ) {
+			int ret = mkWide ( v, std::min ( flow - used, c ), T, cst );
+			graph[i].c -= ret, graph[i ^ 1].c += ret, used += ret, cst += ret * w;
+			if ( flow == used )	break;
+		}
+	}
+	if ( used &lt; flow )	dist[u] = INF64;
+	return used;
+}
+
+pii calcMXflow ( const int S, const int T ) {
+	int resf = 0; i64 resw = 0;
+	while ( mkLayer ( S, T ) ) {
+		rep ( i, 1, tot )	Cur[i] = head[i], vis[i] = 0;
+		resf += mkWide ( S, INF, T, resw );
+	}
+	return { resf, resw };
+}
+
+int main () {
+	std::ios::sync_with_stdio ( 0 ); std::cin.tie ( 0 ); std::cout.tie ( 0 );
+	std::cin &gt;&gt; n; tot = n &lt;&lt; 1; const int S = ++ tot, T = ++ tot;
+	const int pa = ++ tot, pb = ++ tot, pc = ++ tot, pd = ++ tot;
+	rep ( i, 1, n ) { i64 x, y; int c;
+		std::cin &gt;&gt; x &gt;&gt; y &gt;&gt; c;
+		link ( S, i, c, 0 );
+		link ( i, pa, INF, -( x + y ) );
+		link ( i, pb, INF, -( -x + y ) );
+		link ( i, pc, INF, -( x - y ) );
+		link ( i, pd, INF, -( -x - y ) );
+	}
+	rep ( i, 1, n ) { i64 x, y; int c;
+		std::cin &gt;&gt; x &gt;&gt; y &gt;&gt; c;
+		link ( pa, i + n, INF, -( -x - y ) );
+		link ( pb, i + n, INF, -( x - y ) );
+		link ( pc, i + n, INF, -( -x + y ) );
+		link ( pd, i + n, INF, -( x + y ) );
+		link ( i + n, T, c, 0 );
+	}
+	std::cout &lt;&lt; calcMXflow ( S, T ).second * -1 &lt;&lt; &#39;\n&#39;;
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>ARC107F Sum of Abs - AC</h3>
+<p>niubility.</p>
+<details>
+
+<pre><code class="language-cpp">/*
+### disc:
+delete -1 1
+b[i]&gt;0:a[i]+|b[i]| 2|b[i]| 0
+otherwise:a[i]+|b[i]| 0 2|b[i]|
+
+each means cond1.1~3 cond2.1~3
+
+### graph:
+(s,i,cond1 or 2.3)
+(i&#39;,t,cond1 or 2.2)
+*/
+#include&lt;queue&gt;
+#include&lt;cstdio&gt;
+using namespace std;
+const int INF=1e9;
+queue&lt;int&gt;q;
+int n,m,s,t;
+int head[100010],cur[100010],cntot=1,to[1000010],nxt[1000010],val[1000010],vis[100010],dep[100010],ans,a[100010],b[100010],all;
+int myabs(int x)
+{
+	if(x&gt;0)	return x;
+	else	return -x;
+}
+void addedge(int one,int ano,int lav)
+{
+	nxt[++cntot]=head[one];
+	to[cntot]=ano;
+	val[cntot]=lav;
+	head[one]=cntot;
+	nxt[++cntot]=head[ano];
+	to[cntot]=one;
+	val[cntot]=0;
+	head[ano]=cntot;
+}
+bool bfs()
+{
+	for(int i=s;i&lt;=t;++i)
+	{
+		dep[i]=INF;
+		cur[i]=head[i];
+		vis[i]=0;
+	}
+	dep[s]=0;
+	vis[s]=1;
+	q.push(s);
+	while(!q.empty())
+	{
+		int now=q.front();
+		q.pop();
+		vis[now]=0;
+		for(int i=head[now];i;i=nxt[i])
+		{
+			int y=to[i];
+			if(val[i]&amp;&amp;dep[y]&gt;dep[now]+1)
+			{
+				dep[y]=dep[now]+1;
+				if(!vis[y])
+				{
+					vis[y]=1;
+					q.push(y);
+				}
+			}
+		}
+	}
+	return dep[t]!=INF;
+}
+int dfs(int x,int lav)
+{
+	if(x==t)
+	{
+		ans+=lav;
+		return lav;
+	}
+	int used=0,rlow;
+	for(int i=cur[x];i;i=nxt[i])
+	{
+		cur[x]=i;
+		int y=to[i];
+		if(val[i]&amp;&amp;dep[y]==dep[x]+1)
+		{
+			if(rlow=dfs(y,min(lav-used,val[i])))
+			{
+				val[i]-=rlow;
+				val[i^1]+=rlow;
+				used+=rlow;
+				if(used==lav)	break;
+			}
+			else	dep[y]=INF;
+		}
+	}
+	return used;
+}
+int dinic()
+{
+	ans=0;
+	while(bfs())	dfs(s,INF);
+	return ans;
+}
+int main()
+{
+	scanf(&quot;%d%d&quot;,&amp;n,&amp;m);
+	s=0;
+	t=n+n+1;
+	for(int i=1;i&lt;=n;++i)	scanf(&quot;%d&quot;,&amp;a[i]);
+	for(int i=1;i&lt;=n;++i)	scanf(&quot;%d&quot;,&amp;b[i]);
+	for(int i=1;i&lt;=m;++i)
+	{
+		int u,v;
+		scanf(&quot;%d%d&quot;,&amp;u,&amp;v);
+		addedge(u+n,v,INF);
+		addedge(v+n,u,INF);
+	}
+	for(int i=1;i&lt;=n;++i)
+	{
+		if(b[i]&gt;0)
+		{
+			addedge(i,i+n,a[i]+myabs(b[i]));
+			addedge(s,i,myabs(b[i])&lt;&lt;1);
+		}
+		else
+		{
+			addedge(i+n,t,myabs(b[i])&lt;&lt;1);
+			addedge(i,i+n,a[i]+myabs(b[i]));
+		}
+		all+=myabs(b[i]);
+	}
+	printf(&quot;%d\n&quot;,all-dinic());
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>ARC111A Simple Math 2 - AC</h3>
+<p>$\lfloor \frac{10^N - kM^2}{M} \rfloor \equiv \lfloor \frac{10^N}{M} - kM \rfloor \equiv \lfloor \frac{10^N}{M} \rfloor - kM \equiv \lfloor \frac{10^N}{M} \rfloor \pmod M (k \in \mathbb{Z})$</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;iostream&gt;
+
+using i64 = long long;
+
+int cpow ( int bas, i64 idx, const int p ) {
+	int res = 1;
+	while ( idx ) {
+		if ( idx &amp; 1 )	res = ( i64 )res * bas % p;
+		bas = ( i64 )bas * bas % p, idx &gt;&gt;= 1;
+	}
+	return res;
+}
+
+int main () {
+	std::ios::sync_with_stdio ( 0 ); std::cin.tie ( 0 ); std::cout.tie ( 0 );
+	i64 n; int m; std::cin &gt;&gt; n &gt;&gt; m;
+	std::cout &lt;&lt; ( cpow ( 10, n, m * m ) / m ) % m &lt;&lt; &#39;\n&#39;;
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P4076 [SDOI2016]墙上的句子 - AC</h3>
+<p>模拟+网络流。</p>
+<p>有点瘤不想写。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;map&gt;
+#include&lt;set&gt;
+#include&lt;queue&gt;
+#include&lt;string&gt;
+#include&lt;cstdio&gt;
+#include&lt;algorithm&gt;
+using namespace std;
+const int INF=1e9;
+set&lt;string&gt; app;
+queue&lt;int&gt; q;
+vector&lt;int&gt; e[100010];
+vector&lt;string&gt; hstr[110],lstr[110];
+map&lt;string,int&gt; mp;
+int T,cnt,hang[110],lie[110],n,m,s,t,hway[110],lway[110];
+int head[100010],Cur[100010],cntot=1,to[1000010],nxt[1000010],val[1000010],vis[100010],dep[100010],ans,reverans;
+char str[110][110];
+void addedge(int one,int ano,int lav)
+{
+	nxt[++cntot]=head[one];
+	to[cntot]=ano;
+	val[cntot]=lav;
+	head[one]=cntot;
+	nxt[++cntot]=head[ano];
+	to[cntot]=one;
+	val[cntot]=0;
+	head[ano]=cntot;
+}
+bool bfs()
+{
+	for(int i=s;i&lt;=t;++i)
+	{
+		dep[i]=INF;
+		Cur[i]=head[i];
+		vis[i]=0;
+	}
+	dep[s]=0;
+	vis[s]=1;
+	q.push(s);
+	while(!q.empty())
+	{
+		int now=q.front();
+		q.pop();
+		vis[now]=0;
+		for(int i=head[now];i;i=nxt[i])
+		{
+			int y=to[i];
+			if(val[i]&amp;&amp;dep[y]&gt;dep[now]+1)
+			{
+				dep[y]=dep[now]+1;
+				if(!vis[y])
+				{
+					vis[y]=1;
+					q.push(y);
+				}
+			}
+		}
+	}
+	return dep[t]!=INF;
+}
+int dfs(int x,int lav)
+{
+	if(x==t)	return lav;
+	int used=0,rlow;
+	for(int i=Cur[x];i;i=nxt[i])
+	{
+		Cur[x]=i;
+		int y=to[i];
+		if(val[i]&amp;&amp;dep[y]==dep[x]+1)
+		{
+			if(rlow=dfs(y,min(lav-used,val[i])))
+			{
+				val[i]-=rlow;
+				val[i^1]+=rlow;
+				used+=rlow;
+				if(used==lav)	break;
+			}
+			else	dep[y]=INF;
+		}
+	}
+	return used;
+}
+void dinic()
+{
+	ans=0;
+	while(bfs())	ans+=dfs(s,INF);
+}
+bool rever(string x)
+{
+	for(int i=0,j=x.length()-1;i&lt;j;++i,--j)
+	{
+		if(x[i]!=x[j])	return 0;
+	}
+	return 1;
+}
+bool check(string x)
+{
+	for(int i=0,j=x.length()-1;i&lt;j;++i,--j)
+	{
+		if(x[i]&gt;x[j])	return 1;
+		else if(x[i]&lt;x[j])	return 0;
+	}
+	return 0;
+}
+string trans(string x)
+{
+	if(x.length()==1)	return x;
+	else if(x[0]&lt;=x[x.length()-1])	return x;
+	else
+	{
+		for(int i=0,j=x.length()-1;i&lt;j;++i,--j)	swap(x[i],x[j]);
+		return x;
+	}
+}
+int main()
+{
+	scanf(&quot;%d&quot;,&amp;T);
+	while(T--)
+	{
+		scanf(&quot;%d%d&quot;,&amp;n,&amp;m);
+		mp.clear();
+		app.clear();
+		cnt=reverans=0;
+		for(int i=1;i&lt;=n;++i)	scanf(&quot;%d&quot;,&amp;hang[i]);
+		for(int i=1;i&lt;=m;++i)	scanf(&quot;%d&quot;,&amp;lie[i]);
+		for(int i=1;i&lt;=n;++i)	scanf(&quot;%s&quot;,str[i]+1);
+		for(int i=1;i&lt;=n;++i)
+		{
+			string tmp;
+			hstr[i].clear();
+			if(hang[i]==1)
+			{
+				for(int j=1;j&lt;=m;++j)
+				{
+					if(str[i][j]!=&#39;_&#39;)	tmp.push_back(str[i][j]);
+					else
+					{
+						if(tmp.size()&gt;=1)	hstr[i].push_back(tmp);
+						tmp.clear();
+					}
+				}
+				if(str[i][m]!=&#39;_&#39;)	hstr[i].push_back(tmp);
+			}
+			else
+			{
+				for(int j=m;j&gt;=1;--j)
+				{
+					if(str[i][j]!=&#39;_&#39;)	tmp.push_back(str[i][j]);
+					else
+					{
+						if(tmp.size()&gt;=1)	hstr[i].push_back(tmp);
+						tmp.clear();
+					}
+				}
+				if(str[i][1]!=&#39;_&#39;)	hstr[i].push_back(tmp);
+			}
+		}
+		for(int j=1;j&lt;=m;++j)
+		{
+			string tmp;
+			lstr[j].clear();
+			if(lie[j]==1)
+			{
+				for(int i=1;i&lt;=n;++i)
+				{
+					if(str[i][j]!=&#39;_&#39;)	tmp.push_back(str[i][j]);
+					else
+					{
+						if(tmp.size()&gt;=1)	lstr[j].push_back(tmp);
+						tmp.clear();
+					}
+				}
+				if(str[n][j]!=&#39;_&#39;)	lstr[j].push_back(tmp);
+			}
+			else
+			{
+				for(int i=n;i&gt;=1;--i)
+				{
+					if(str[i][j]!=&#39;_&#39;)	tmp.push_back(str[i][j]);
+					else
+					{
+						if(tmp.size()&gt;=1)	lstr[j].push_back(tmp);
+						tmp.clear();
+					}
+				}
+				if(str[1][j]!=&#39;_&#39;)	lstr[j].push_back(tmp);
+			}
+		}
+		for(int i=1;i&lt;=n;++i)
+		{
+			if(hang[i]==1)
+			{
+				int way=0;
+				for(int j=0;j&lt;hstr[i].size();++j)
+				{
+					string cur=hstr[i][j];
+					if(rever(cur))
+					{
+						if(!app.count(cur))
+						{
+							app.insert(cur);
+							reverans++;
+						}
+					}
+					else
+					{
+						if(~way)
+						{
+							if(check(cur))	hway[i]=1;
+							else	hway[i]=0;
+							way=-1;
+						}
+						cur=trans(cur);
+						if(!mp[cur])
+						{
+							mp[cur]=++cnt;
+							e[cnt].clear();
+						}
+						e[mp[cur]].push_back(i);
+					}
+				}
+			}
+			else if(hang[i]==-1)
+			{
+				int way=0;
+				for(int j=0;j&lt;hstr[i].size();++j)
+				{
+					string cur=hstr[i][j];
+					if(rever(cur))
+					{
+						if(!app.count(cur))
+						{
+							app.insert(cur);
+							reverans++;
+						}
+					}
+					else
+					{
+						if(~way)
+						{
+							if(check(cur))	hway[i]=1;
+							else	hway[i]=0;
+							way=-1;
+						}
+						cur=trans(cur);
+						if(!mp[cur])
+						{
+							mp[cur]=++cnt;
+							e[cnt].clear();
+						}
+						e[mp[cur]].push_back(i);
+					}
+				}
+			}
+			else
+			{
+				for(int j=0;j&lt;hstr[i].size();++j)
+				{
+					string cur=hstr[i][j];
+					if(rever(cur))
+					{
+						if(!app.count(cur))
+						{
+							app.insert(cur);
+							reverans++;
+						}
+					}
+					else
+					{
+						cur=trans(cur);
+						if(!mp[cur])
+						{
+							mp[cur]=++cnt;
+							e[cnt].clear();
+						}
+						e[mp[cur]].push_back(i);
+					}
+				}
+				hway[i]=-1;
+			}
+		}
+		for(int j=1;j&lt;=m;++j)
+		{
+			if(lie[j]==1)
+			{
+				int way=0;
+				for(int i=0;i&lt;lstr[j].size();++i)
+				{
+					string cur=lstr[j][i];
+					if(rever(cur))
+					{
+						if(!app.count(cur))
+						{
+							app.insert(cur);
+							reverans++;
+						}
+					}
+					else
+					{
+						if(~way)
+						{
+							if(check(cur))	lway[j]=1;
+							else	lway[j]=0;
+							way=-1;
+						}
+						cur=trans(cur);
+						if(!mp[cur])
+						{
+							mp[cur]=++cnt;
+							e[cnt].clear();
+						}
+						e[mp[cur]].push_back(j+n);
+					}
+				}
+			}
+			else if(lie[j]==-1)
+			{
+				int way=0;
+				for(int i=0;i&lt;lstr[j].size();++i)
+				{
+					string cur=lstr[j][i];
+					if(rever(cur))
+					{
+						if(!app.count(cur))
+						{
+							app.insert(cur);
+							reverans++;
+						}
+					}
+					else
+					{
+						if(~way)
+						{
+							if(check(cur))	lway[j]=1;
+							else	lway[j]=0;
+							way=-1;
+						}
+						cur=trans(cur);
+						if(!mp[cur])
+						{
+							mp[cur]=++cnt;
+							e[cnt].clear();
+						}
+						e[mp[cur]].push_back(j+n);
+					}
+				}
+			}
+			else
+			{
+				for(int i=0;i&lt;lstr[j].size();++i)
+				{
+					string cur=lstr[j][i];
+					if(rever(cur))
+					{
+						if(!app.count(cur))
+						{
+							app.insert(cur);
+							reverans++;
+						}
+					}
+					else
+					{
+						cur=trans(cur);
+						if(!mp[cur])
+						{
+							mp[cur]=++cnt;
+							e[cnt].clear();
+						}
+						e[mp[cur]].push_back(j+n);
+					}
+				}
+				lway[j]=-1;
+			}
+		}
+		s=0;
+		t=n+m+cnt+cnt+1;
+		for(int i=s;i&lt;=t;++i)	head[i]=0;
+		cntot=1;
+		for(int i=1;i&lt;=n;++i)
+		{
+			if(hway[i]==0)	addedge(s,i,INF);
+			else if(hway[i]==1)	addedge(i,t,INF);
+		}
+		for(int j=1;j&lt;=m;++j)
+		{
+			if(lway[j]==0)	addedge(s,j+n,INF);
+			else if(lway[j]==1)	addedge(j+n,t,INF);
+		}
+		for(int i=1;i&lt;=cnt;++i)
+		{
+			addedge(s,i+n+m,1);
+			addedge(i+cnt+n+m,t,1);
+			for(int j=0;j&lt;e[i].size();++j)
+			{
+				addedge(i+n+m,e[i][j],INF);
+				addedge(e[i][j],i+cnt+n+m,INF);
+			}
+		}
+		dinic();
+		printf(&quot;%d\n&quot;,((ans-cnt)&lt;&lt;1)+reverans);
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P4716 【模板】最小树形图 - AC</h3>
+<p>板题，不过我拿 tarjan 实现好像没有优越性……</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;queue&gt;
+#include&lt;cstdio&gt;
+#include&lt;algorithm&gt;
+using namespace std;
+const int INF=1e9;
+vector&lt;pair&lt;int,long long&gt; &gt; e[2][110];
+int n,m,root,belong[110],col,val[2][110],pre[2][110],dfn[110],low[110],cnt,sta[110],top,siz[110];
+void tarjan(int x,int r)
+{
+	dfn[x]=low[x]=++cnt;
+	sta[++top]=x;
+	int y=pre[r][x];
+	if(y)
+	{
+		if(!dfn[y])
+		{
+			tarjan(y,r);
+			low[x]=min(low[x],low[y]);
+		}
+		else if(!belong[y])	low[x]=min(low[x],dfn[y]);
+	}
+	if(dfn[x]==low[x])
+	{
+		belong[x]=++col;
+		siz[col]=1;
+		while(sta[top]!=x)
+		{
+			belong[sta[top--]]=col;
+			siz[col]++;
+		}
+		top--;
+	}
+}
+long long solve()
+{
+	int turn=0;
+	long long res=0;
+	while(233)
+	{
+		cnt=col=0;
+		for(int i=1;i&lt;=n;++i)	dfn[i]=belong[i]=0;
+		for(int i=1;i&lt;=n;++i)
+		{
+			if(!dfn[i])	tarjan(i,turn);
+		}
+		for(int i=1;i&lt;=n;++i)
+		{
+			if(i!=root&amp;&amp;val[turn][i]==INF)	return -1;
+		}
+		if(col==n)
+		{
+			for(int i=1;i&lt;=n;++i)
+			{
+				if(i!=root)	res+=val[turn][i];
+			}
+			return res;
+		}
+		for(int i=1;i&lt;=n;++i)
+		{
+			if(belong[pre[turn][i]]==belong[i])	res+=val[turn][i];
+		}
+		for(int i=1;i&lt;=n;++i)
+		{
+			e[turn^1][i].clear();
+			val[turn^1][i]=INF;
+			pre[turn^1][i]=0;
+		}
+		for(int i=1;i&lt;=n;++i)
+		{
+			for(int j=0;j&lt;e[turn][i].size();++j)
+			{
+				int y=e[turn][i][j].first;
+				long long z=e[turn][i][j].second;
+				if(belong[i]!=belong[y])
+				{
+					if(siz[belong[y]]&gt;1)	z-=val[turn][y];
+					e[turn^1][belong[i]].push_back(make_pair(belong[y],z));
+					if(z&lt;val[turn^1][belong[y]])
+					{
+						val[turn^1][belong[y]]=z;
+						pre[turn^1][belong[y]]=belong[i];
+					}
+				}
+			}
+		}
+		n=col;
+		root=belong[root];
+		turn^=1;
+	}
+}
+int main()
+{
+	scanf(&quot;%d%d%d&quot;,&amp;n,&amp;m,&amp;root);
+	for(int i=1;i&lt;=n;++i)	val[0][i]=INF;
+	for(int i=1;i&lt;=m;++i)
+	{
+		int u,v;
+		long long w;
+		scanf(&quot;%d%d%lld&quot;,&amp;u,&amp;v,&amp;w);
+		if(u!=v&amp;&amp;v!=root)
+		{
+			e[0][u].push_back(make_pair(v,w));
+			if(val[0][v]&gt;w)
+			{
+				val[0][v]=w;
+				pre[0][v]=u;
+			}
+		}
+	}
+	printf(&quot;%lld\n&quot;,solve());
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>BZOJ2481 PKU3164 Command Network - AC</h3>
+<p>....</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;cmath&gt;
+#include&lt;queue&gt;
+#include&lt;cstdio&gt;
+#include&lt;algorithm&gt;
+using namespace std;
+const int INF=1e9;
+int n,m,root,belong[1010],col,pre[2][1010],val[2][1010],dfn[1010],low[1010],cnt,sta[1010],top,siz[1010];
+int head[2][1010],nxt[2][1000010],to[2][1000010],cntot[2];
+long long X[1010],Y[1010],lav[2][1000010];
+void addedge(int one,int ano,long long tak,int id)
+{
+	to[id][++cntot[id]]=ano;
+	lav[id][cntot[id]]=tak;
+	nxt[id][cntot[id]]=head[id][one];
+	head[id][one]=cntot[id];
+}
+void tarjan(int x,int p)
+{
+	dfn[x]=low[x]=++cnt;
+	sta[++top]=x;
+	int y=pre[p][x];
+	if(y)
+	{
+		if(!dfn[y])
+		{
+			tarjan(y,p);
+			low[x]=min(low[x],low[y]);
+		}
+		else if(!belong[y])	low[x]=min(low[x],dfn[y]);
+	}
+	if(dfn[x]==low[x])
+	{
+		belong[x]=++col;
+		siz[col]=1;
+		while(sta[top]!=x)
+		{
+			belong[sta[top--]]=col;
+			siz[col]++;
+		}
+		top--;
+	}
+}
+long long solve()
+{
+	int turn=0;
+	long long res=0;
+	while(233)
+	{
+		cnt=col=0;
+		for(int i=1;i&lt;=n;++i)	dfn[i]=belong[i]=0;
+		for(int i=1;i&lt;=n;++i)
+		{
+			if(!dfn[i])	tarjan(i,turn);
+		}
+		if(col==n)
+		{
+			for(int i=1;i&lt;=n;++i)
+			{
+				if(i!=root)	res+=val[turn][i];
+			}
+			return res;
+		}
+		for(int i=1;i&lt;=n;++i)
+		{
+			if(belong[pre[turn][i]]==belong[i])	res+=val[turn][i];
+		}
+		cntot[turn^1]=0;
+		for(int i=1;i&lt;=col;++i)
+		{
+			head[turn^1][i]=0;
+			val[turn^1][i]=INF;
+			pre[turn^1][i]=0;
+		}
+		for(int i=1;i&lt;=n;++i)
+		{
+			for(int j=head[turn][i];j;j=nxt[turn][j])
+			{
+				int y=to[turn][j];
+				long long z=lav[turn][j];
+				if(belong[i]^belong[y])
+				{
+					if(siz[belong[y]]&gt;1)	z-=val[turn][y];
+					addedge(belong[i],belong[y],z,turn^1);
+					if(z&lt;val[turn^1][belong[y]])
+					{
+						val[turn^1][belong[y]]=z;
+						pre[turn^1][belong[y]]=belong[i];
+					}
+				}
+			}
+		}
+		n=col;
+		root=belong[root];
+		turn^=1;
+	}
+}
+int main()
+{
+	while(scanf(&quot;%d%d&quot;,&amp;n,&amp;m)!=EOF)
+	{
+		root=++n;
+		for(int i=1;i&lt;n;++i)	scanf(&quot;%lld%lld&quot;,&amp;X[i],&amp;Y[i]);
+		cntot[0]=0;
+		for(int i=1;i&lt;=n;++i)
+		{
+			head[0][i]=0;
+			val[0][i]=INF;
+			pre[0][i]=0;
+		}
+		for(int i=1;i&lt;n;++i)
+		{
+			addedge(n,i,INF,0);
+			pre[0][i]=n;
+			val[0][i]=INF;
+		}
+		for(int i=1;i&lt;=m;++i)
+		{
+			int u,v;
+			scanf(&quot;%d%d&quot;,&amp;u,&amp;v);
+			if(u^v)
+			{
+				long long w=abs(X[u]-X[v])+abs(Y[u]-Y[v]);
+				addedge(u,v,w,0);
+				if(w&lt;val[0][v])
+				{
+					val[0][v]=w;
+					pre[0][v]=u;
+				}
+			}
+		}
+		long long ret=solve();
+		if(ret&gt;=(INF&lt;&lt;1))	printf(&quot;Poor\n&quot;);
+		else	printf(&quot;%lld\n&quot;,ret-INF);
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>BZOJ4349 最小树形图 / P2792 [JSOI2008]小店购物 - AC</h3>
+<p>拆点跑最小树形图。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;cstdio&gt;
+#include&lt;algorithm&gt;
+using namespace std;
+const int INF=1e9;
+int n,m,k,root,pre[2][6010],cnt,sta[6010],top,head[2][6010],to[2][1000010],nxt[2][1000010],b[60],ID[60][110],cntot[2],belong[6010],col,siz[6010],dfn[6010],low[6010];
+double lav[2][1000010],val[2][6010],a[60];
+void addedge(int one,int ano,double hav,int id)
+{
+	to[id][++cntot[id]]=ano;
+	nxt[id][cntot[id]]=head[id][one];
+	lav[id][cntot[id]]=hav;
+	head[id][one]=cntot[id];
+}
+void tarjan(int x,int ed)
+{
+	dfn[x]=low[x]=++cnt;
+	sta[++top]=x;
+	int y=pre[ed][x];
+	if(y)
+	{
+		if(!dfn[y])
+		{
+			tarjan(y,ed);
+			low[x]=min(low[x],low[y]);
+		}
+		else if(!belong[y])	low[x]=min(low[x],dfn[y]);
+	}
+	if(dfn[x]==low[x])
+	{
+		belong[x]=++col;
+		siz[col]=1;
+		while(sta[top]^x)
+		{
+			belong[sta[top--]]=col;
+			siz[col]++;
+		}
+		top--;
+	}
+}
+double solve()
+{
+	int turn=0;
+	double res=0;
+	while(233)
+	{
+		cnt=col=0;
+		for(int i=1;i&lt;=n;++i)	dfn[i]=belong[i]=0;
+		for(int i=1;i&lt;=n;++i)
+		{
+			if(!dfn[i])	tarjan(i,turn);
+		}
+		if(col==n)
+		{
+			for(int i=1;i&lt;=n;++i)
+			{
+				if(i^root)	res+=val[turn][i];
+			}
+			return res;
+		}
+		for(int i=1;i&lt;=n;++i)
+		{
+			if(belong[pre[turn][i]]==belong[i])	res+=val[turn][i];
+		}
+		cntot[turn^1]=0;
+		for(int i=1;i&lt;=n;++i)
+		{
+			head[turn^1][i]=0;
+			val[turn^1][i]=INF;
+			pre[turn^1][i]=0;
+		}
+		for(int i=1;i&lt;=n;++i)
+		{
+			for(int j=head[turn][i];j;j=nxt[turn][j])
+			{
+				int y=to[turn][j];
+				double z=lav[turn][j];
+				if(belong[i]^belong[y])
+				{
+					if(siz[belong[y]]&gt;1)	z-=val[turn][y];
+					addedge(belong[i],belong[y],z,turn^1);
+					if(val[turn^1][belong[y]]&gt;z)
+					{
+						val[turn^1][belong[y]]=z;
+						pre[turn^1][belong[y]]=belong[i];
+					}
+				}
+			}
+		}
+		n=col;
+		root=belong[root];
+		turn^=1;
+	}
+}
+int main()
+{
+	scanf(&quot;%d&quot;,&amp;m);
+	for(int i=1;i&lt;=m;++i)
+	{
+		scanf(&quot;%lf%d&quot;,&amp;a[i],&amp;b[i]);
+		for(int j=1;j&lt;=b[i];++j)
+		{
+			ID[i][j]=++n;
+			val[0][n]=INF;
+		}
+	}
+	val[0][++n]=INF;
+	root=n;
+	for(int i=1;i&lt;=m;++i)
+	{
+		if(b[i])
+		{
+			addedge(root,ID[i][1],a[i],0);
+			val[0][ID[i][1]]=a[i];
+			pre[0][ID[i][1]]=root;
+			for(int j=2;j&lt;=b[i];++j)
+			{
+				addedge(ID[i][j-1],ID[i][j],a[i],0);
+				val[0][ID[i][j]]=a[i];
+				pre[0][ID[i][j]]=ID[i][j-1];
+			}
+		}
+	}
+	scanf(&quot;%d&quot;,&amp;k);
+	for(int i=1;i&lt;=k;++i)
+	{
+		int u,v;
+		double w;
+		scanf(&quot;%d%d%lf&quot;,&amp;u,&amp;v,&amp;w);
+		if(u^v)
+		{
+			for(int j=1;j&lt;=b[v];++j)
+			{
+				addedge(ID[u][1],ID[v][j],w,0);
+				if(val[0][ID[v][j]]&gt;w)
+				{
+					val[0][ID[v][j]]=w;
+					pre[0][ID[v][j]]=ID[u][1];
+				}
+			}
+		}
+	}
+	printf(&quot;%.2lf\n&quot;,solve());
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P2573 [SCOI2012]滑雪与时间胶囊 - AC</h3>
+<p>一道在 最小树形图 链接里 且 不能用其过的题。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;queue&gt;
+#include&lt;cstdio&gt;
+#include&lt;algorithm&gt;
+using namespace std;
+vector&lt;pair&lt;long long,long long&gt; &gt; e[100010];
+long long n,m,h[100010],fa[100010],oneans,anoans,vis[100010];
+struct edge
+{
+	long long fr,ba,val;
+}lin[2000010];
+void makeset()
+{
+	for(long long i=1;i&lt;=n;++i)	fa[i]=i;
+}
+long long findset(long long x)
+{
+	if(x^fa[x])	fa[x]=findset(fa[x]);
+	return fa[x];
+}
+bool mergeset(long long x,long long y)
+{
+	x=findset(x);
+	y=findset(y);
+	if(x^y)
+	{
+		fa[x]=y;
+		return 1;
+	}
+	else	return 0;
+}
+void dfs(long long x)
+{
+	vis[x]=1;
+	++oneans;
+	for(long long i=0;i&lt;e[x].size();++i)
+	{
+		long long y=e[x][i].first,z=e[x][i].second;
+		lin[++m].fr=x;
+		lin[m].ba=y;
+		lin[m].val=z;
+		if(!vis[y])	dfs(y);
+	}
+}
+bool cmp(edge one,edge ano)
+{
+	if(h[one.ba]^h[ano.ba])	return h[one.ba]&gt;h[ano.ba];
+	else	return one.val&lt;ano.val;
+}
+int main()
+{
+	scanf(&quot;%lld%lld&quot;,&amp;n,&amp;m);
+	makeset();
+	for(long long i=1;i&lt;=n;++i)	scanf(&quot;%lld&quot;,&amp;h[i]);
+	for(long long i=1;i&lt;=m;++i)
+	{
+		long long u,v,w;
+		scanf(&quot;%lld%lld%lld&quot;,&amp;u,&amp;v,&amp;w);
+		if(h[u]&gt;=h[v])	e[u].push_back(make_pair(v,w));
+		if(h[u]&lt;=h[v])	e[v].push_back(make_pair(u,w));
+	}
+	m=0;
+	dfs(1);
+	sort(lin+1,lin+1+m,cmp);
+	long long tmp=oneans;
+	for(long long i=1;i&lt;=m;++i)
+	{
+		if(mergeset(lin[i].fr,lin[i].ba))
+		{
+			anoans+=lin[i].val;
+			--tmp;
+			if(tmp&lt;2)	break;
+		}
+	}
+	printf(&quot;%lld %lld\n&quot;,oneans,anoans);
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>ARC111B Reversible Cards - AC</h3>
+<p>nowcoder 原题。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;cstdio&gt;
+int n,cab[400010],fa[400010],a,b,ans;
+int findset(int x)
+{
+	if(fa[x])	return fa[x]=findset(fa[x]);
+	else	return x;
+}
+int main()
+{
+	scanf(&quot;%d&quot;,&amp;n);
+	for(int i=1;i&lt;=n;++i)
+	{
+		scanf(&quot;%d%d&quot;,&amp;a,&amp;b);
+		a=findset(a);
+		b=findset(b);
+		if((a^b)&amp;&amp;(!cab[a]||!cab[b]))
+		{
+			fa[a]=b;
+			cab[b]|=cab[a];
+			ans++;
+		}
+		else if(!cab[a])
+		{
+			cab[a]=1;
+			ans++;
+		}
+	}
+	printf(&quot;%d\n&quot;,ans);
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>ARC111C Too Heavy - AC</h3>
+<p>构造出一个操作序列。</p>
+<p>先不考虑最小，只考虑构造出来。</p>
+<p>参考某道 ABC D 题，直接连边。</p>
+<p>$i\rightarrow p_{i}\rightarrow p_{p_{i}}\rightarrow\cdots\rightarrow i$。</p>
+<p><img src="http://61.186.173.89:2019/2021/01/13/93b01537c1307.png" alt="craft.png"></p>
+<p>$1\ 2$ 分别表示 person、baggage。</p>
+<p>再想，相当于我们想要让，$1$ and $2$ 一一对应。</p>
+<p>一个 $(u,v)$ 的 $2$（即 $v$）不能被交换只在 $a_{u}\le b_{v}$。</p>
+<p>所以无解就是这个环中存在 $a_{u}\le b_{v}$。</p>
+<p>剩下构造，先考虑满足规则。</p>
+<p>贪心的选一个最大的 $a_{i}$ 进行即可。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;queue&gt;
+#include&lt;cstdio&gt;
+#include&lt;algorithm&gt;
+using namespace std;
+vector&lt;pair&lt;int,int&gt; &gt; ans;
+int n,a[200010],b[200010],p[200010],rev[200010],vis[200010];
+int main()
+{
+	scanf(&quot;%d&quot;,&amp;n);
+	for(int i=1;i&lt;=n;++i)	scanf(&quot;%d&quot;,&amp;a[i]);
+	for(int i=1;i&lt;=n;++i)	scanf(&quot;%d&quot;,&amp;b[i]);
+	for(int i=1;i&lt;=n;++i)
+	{
+		scanf(&quot;%d&quot;,&amp;p[i]);
+		rev[p[i]]=i;
+	}
+	vector&lt;int&gt; per;
+	for(int i=1;i&lt;=n;++i)
+	{
+		if(p[i]^i)
+		{
+			if(a[rev[i]]&lt;=b[i])
+			{
+				printf(&quot;-1\n&quot;);
+				return 0;
+			}
+			if(!vis[i])
+			{
+				vis[i]=1;
+				per.clear();
+				per.push_back(i);
+				for(int j=p[i];j^i;j=p[j])
+				{
+					if(a[rev[j]]&lt;=b[j])
+					{
+						printf(&quot;-1\n&quot;);
+						return 0;
+					}
+					vis[j]=1;
+					per.push_back(j);
+				}
+				int pos=0,val=0;
+				for(int j=0;j&lt;per.size();++j)
+				{
+					if(a[per[pos]]&lt;=a[per[j]])
+					{
+						pos=j;
+						val=per[j];
+					}
+				}
+				for(int j=pos+1;j&lt;per.size();++j)	ans.push_back(make_pair(val,per[j]));
+				for(int j=0;j&lt;pos;++j)	ans.push_back(make_pair(val,per[j]));
+			}
+		}
+	}
+	printf(&quot;%d\n&quot;,ans.size());
+	for(int i=0;i&lt;ans.size();++i)	printf(&quot;%d %d\n&quot;,ans[i].first,ans[i].second);
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>SYZOJ725 吃火锅 - AC</h3>
+<p>状压。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;cstdio&gt;
+const int mod=1e6+7;
+int n,m,f[20][(1&lt;&lt;12)+10],eve[20],upp,st[(1&lt;&lt;12)+10],top,ans;
+int main()
+{
+	scanf(&quot;%d%d&quot;,&amp;n,&amp;m);
+	upp=1&lt;&lt;m;
+	for(int i=0;i&lt;n;++i)
+	{
+		for(int j=0;j&lt;m;++j)
+		{
+			int x;
+			scanf(&quot;%d&quot;,&amp;x);
+			eve[i]^=(x^1)&lt;&lt;j;
+		}
+	}
+	for(int i=0;i^upp;++i)
+	{
+		if(!(i&amp;(i&lt;&lt;1)))	st[top++]=i;
+	}
+	for(int i=0;i&lt;top;++i)
+	{
+		if(!(eve[0]&amp;st[i]))	f[0][i]=1;
+	}
+	for(int i=1;i&lt;n;++i)
+	{
+		for(int j=0;j&lt;top;++j)
+		{
+			if(f[i-1][j])
+			{
+				for(int k=0;k&lt;top;++k)
+				{
+					if(!(eve[i]&amp;st[k])&amp;&amp;!(st[j]&amp;st[k]))	f[i][k]=(f[i][k]+f[i-1][j])%mod;
+				}
+			}
+		}
+	}
+	for(int i=0;i&lt;top;++i)	ans=(ans+f[n-1][i])%mod;
+	printf(&quot;%d\n&quot;,ans);
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>ARC111D Orientation - AC</h3>
+<p>像个贪心？</p>
+<ul>
+<li><p>$c_{u}\neq c_{v}$</p>
+<ul>
+<li>$c_{u}&gt;c_{v}$：$\rightarrow$</li>
+<li>$c_{u}&lt;c_{v}$：$\leftarrow$</li>
+</ul>
+</li>
+<li><p>$c_{u}=c_{v}$</p>
+</li>
+</ul>
+<p>在一个环里，深搜即可。</p>
+<p><del>这 C D 放反了吧</del></p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;queue&gt;
+#include&lt;cstdio&gt;
+#include&lt;string&gt;
+#include&lt;algorithm&gt;
+using namespace std;
+vector&lt;pair&lt;int,int&gt; &gt; e[110];
+vector&lt;string&gt; ans;
+int n,m,c[110],eve[110][110],vis[110];
+void dfs(int x)
+{
+	vis[x]=1;
+	for(int i=1;i&lt;=n;++i)
+	{
+		if(eve[x][i])
+		{
+			eve[i][x]=0;
+			if(!vis[i])	dfs(i);
+		}
+	}
+}
+int main()
+{
+	scanf(&quot;%d%d&quot;,&amp;n,&amp;m);
+	for(int i=1;i&lt;=m;++i)
+	{
+		int u,v;
+		scanf(&quot;%d%d&quot;,&amp;u,&amp;v);
+		e[u].push_back(make_pair(v,i));
+	}
+	for(int i=1;i&lt;=n;++i)	scanf(&quot;%d&quot;,&amp;c[i]);
+	ans.resize(m);
+	for(int i=1;i&lt;=n;++i)
+	{
+		for(int j=0;j&lt;e[i].size();++j)
+		{
+			int y=e[i][j].first,id=e[i][j].second-1;
+			if(c[i]&gt;c[y])	ans[id]=&quot;-&gt;&quot;;
+			else if(c[i]&lt;c[y])	ans[id]=&quot;&lt;-&quot;;
+			else	eve[i][y]=eve[y][i]=1;
+		}
+	}
+	for(int i=1;i&lt;=n;++i)
+	{
+		for(int j=0;j&lt;e[i].size();++j)
+		{
+			int y=e[i][j].first,id=e[i][j].second-1;
+			dfs(i);
+			if(eve[i][y])	ans[id]=&quot;-&gt;&quot;;
+			else if(eve[y][i])	ans[id]=&quot;&lt;-&quot;;
+		}
+	}
+	for(int i=0;i&lt;ans.size();++i)	printf(&quot;%s\n&quot;,ans[i].c_str());
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>AT5141 [AGC035D] Add and Remove - AC</h3>
+<p>答案一定是最后的 $a_{1}+a_{n}$。按照贡献来考虑的话，这俩数只对答案贡献一次。</p>
+<p>考虑两个数 $a_{i},a_{i+1}$ 之间插入一个数，那么这个数会对答案贡献 $c_{i}+c_{i+1}$ 次（$c$ 表示某个元素的贡献次数）。</p>
+<p>想想状态数，能做了：</p>
+<p>设 $f_{l,r,c_{l},c_{r}}$ 为不用说的状态，转移看心情写。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;cstdio&gt;
+#include&lt;algorithm&gt;
+using namespace std;
+long long a[30];
+int n;
+long long dfs(int l,int r,int one,int ano)
+{
+	if(l+1&lt;r)
+	{
+		long long res=1e18;
+		for(int i=l+1;i&lt;r;++i)	res=min(res,dfs(l,i,one,one+ano)+dfs(i,r,one+ano,ano)+a[i]*(one+ano));
+		return res;
+	}
+	else	return 0;
+}
+int main()
+{
+	scanf(&quot;%d&quot;,&amp;n);
+	for(int i=1;i&lt;=n;++i)	scanf(&quot;%lld\n&quot;,&amp;a[i]);
+	printf(&quot;%lld\n&quot;,a[1]+a[n]+dfs(1,n,1,1));
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>ARC111E Simple Math 3 - AC</h3>
+<p>即求：
+$
+\sum_{i=1}^{\infty}[\lfloor\frac{A+B\times i-1}{D}\rfloor=\lfloor\frac{A+C\times i}{D}\rfloor]
+$
+题目说这玩意儿是 finite，然后（没加思考）跑到 U 群问成功丢人。</p>
+<p>悲伤的故事，这告诉我们问前先思考。</p>
+<p>原因是 $i$ 大了 $[A+B\times i,A+C\times i]$ 的长度一定 $\ge D$。</p>
+<p>具体来说是 $i&gt;\frac{D-2}{C-B}$ 的时候就完了。</p>
+<p>那么式子改写为：
+$
+\sum_{i=1}^{\frac{D-2}{C-B}}[\lfloor\frac{A+B\times i-1}{D}\rfloor=\lfloor\frac{A+C\times i}{D}\rfloor]
+$
+继续分析，此时的区间 $[A+B\times i,A+C\times i]$ 的长度小于 $D$，里面最多有一个数是 $D$ 的 multiple。</p>
+<p>不会了 看题解 要类欧 不会了 抄板子 过题了</p>
+<p>这种推不复杂考板的题好草人啊。。。。</p>
+<p>upd：</p>
+<p>official editorial 说可以用 AC lib 的 <code>floor_sum</code> 直接算。</p>
+<p>屑行为 <a href="https://zhuanlan.zhihu.com/p/343777907">details</a>。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;cstdio&gt;
+int T;
+long long a,b,c,d;
+long long dfs(long long a,long long b,long long c,long long n)
+{
+	if(a&gt;=c||b&gt;=c)	return dfs(a%c,b%c,c,n)+(a/c)*(n+1)*n/2+(b/c)*(n+1);
+	else if(a==0)	return 0;
+	else	return (a*n+b)/c*n-dfs(c,c-b-1,a,(a*n+b)/c-1);
+}
+int main()
+{
+	scanf(&quot;%d&quot;,&amp;T);
+	while(T--)
+	{
+		scanf(&quot;%lld%lld%lld%lld&quot;,&amp;a,&amp;b,&amp;c,&amp;d);
+		printf(&quot;%lld\n&quot;,(d-2)/(c-b)-dfs(c,a,d,(d-2)/(c-b))+dfs(b,a-1,d,(d-2)/(c-b)));
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P5544 [JSOI2016]炸弹攻击1 - AC</h3>
+<p>模拟退火板。。。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;ctime&gt;
+#include&lt;cmath&gt;
+#include&lt;cstdio&gt;
+#include&lt;cstdlib&gt;
+#include&lt;algorithm&gt;
+using namespace std;
+const double final=1e-9,delta=0.996,begip=23333,alpha=1215;
+int n,m,R,X[20],Y[20],r[20],p[1010],q[1010],ans;
+double ansx,ansy;
+double dist(double onex,double oney,double anox,double anoy)
+{
+	return sqrt((onex-anox)*(onex-anox)+(oney-anoy)*(oney-anoy));
+}
+int f(double x,double y)
+{
+	double cur=R;
+	for(int i=1;i&lt;=n;++i)	cur=min(cur,dist(x,y,X[i],Y[i])-r[i]);
+	int res=0;
+	for(int i=1;i&lt;=m;++i)
+	{
+		if(dist(x,y,p[i],q[i])&lt;cur)	res++;
+	}
+	return res;
+}
+void find()
+{
+	double tem=begip;
+	int temans=0;
+	while(tem&gt;final)
+	{
+		double nowx=ansx+((rand()&lt;&lt;1)-RAND_MAX)*tem;
+		double nowy=ansy+((rand()&lt;&lt;1)-RAND_MAX)*tem;
+		int nowans=f(nowx,nowy);
+		if(nowans-temans&gt;0)
+		{
+			temans=nowans;
+			ansx=nowx;
+			ansy=nowy;
+			ans=max(ans,temans);
+		}
+		else if(exp((nowans-temans)/sqrt(tem))&gt;(double)rand()/alpha)
+		{
+			ansx=nowx;
+			ansy=nowy;
+			temans=nowans;
+		}
+		tem*=delta;
+	}
+}
+int main()
+{
+    srand(time(0));
+	scanf(&quot;%d%d%d&quot;,&amp;n,&amp;m,&amp;R);
+	for(int i=1;i&lt;=n;++i)	scanf(&quot;%d%d%d&quot;,&amp;X[i],&amp;Y[i],&amp;r[i]);
+	for(int i=1;i&lt;=m;++i)
+	{
+		scanf(&quot;%d%d&quot;,&amp;p[i],&amp;q[i]);
+		ansx+=p[i];
+		ansy+=q[i];
+	}
+	ansx/=m;
+	ansy/=m;
+	ans=f(ansx,ansy);
+	for(int i=1;i&lt;=8;++i)	find();
+	printf(&quot;%d\n&quot;,ans);
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P2495 [SDOI2011]消耗战 - AC</h3>
+<p>虚树 DP。</p>
+<details>
+
+<pre><code class="language-cpp">/*
+VIOLENCE:
+dp[u] - cut the keys in subtree(u)
+if v is a key:
+	dp[u]=dp[u]+w(u,v)
+else:
+	dp[u]=dp[u]+min(dp[v],w(u,v))
+*/
+#include&lt;queue&gt;
+#include&lt;cstdio&gt;
+#include&lt;algorithm&gt;
+using namespace std;
+const long long INF=1e15;
+vector&lt;pair&lt;long long,long long&gt; &gt; e[300010];
+long long n,m,dis[300010],key[300010],k,dp[300010],sta[300010],top,dfn[300010],cnt;
+long long fa[300010][21],val[300010][21],dep[300010],h[300010],power[300010];
+bool cmp(long long one,long long ano)
+{
+	return dfn[one]&lt;dfn[ano];
+}
+void dfs(long long x,long long las,long long co)
+{
+	dfn[x]=++cnt;
+	dep[x]=dep[las]+1;
+	fa[x][0]=las;
+	val[x][0]=co;
+	for(long long i=1;i^21;++i)
+	{
+		fa[x][i]=fa[fa[x][i-1]][i-1];
+		val[x][i]=min(val[x][i-1],val[fa[x][i-1]][i-1]);
+	}
+	for(long long i=0;i&lt;e[x].size();++i)
+	{
+		long long y=e[x][i].first,z=e[x][i].second;
+		if(y^las)	dfs(y,x,z);
+	}
+}
+long long LCA(long long one,long long ano)
+{
+	if(dep[one]&lt;dep[ano])	swap(one,ano);
+	for(long long i=20;~i;--i)
+	{
+		if(dep[fa[one][i]]&gt;=dep[ano])	one=fa[one][i];
+	}
+	if(one^ano)
+	{
+		for(long long i=20;~i;--i)
+		{
+			if(fa[one][i]^fa[ano][i])
+			{
+				one=fa[one][i];
+				ano=fa[ano][i];
+			}
+		}
+		return fa[one][0];
+	}
+	else	return one;
+}
+long long getmin(long long one,long long ano)
+{
+	long long res=INF;
+	if(dep[one]&lt;dep[ano])	swap(one,ano);
+	for(long long i=20;~i;--i)
+	{
+		if(dep[fa[one][i]]&gt;dep[ano])
+		{
+			res=min(res,val[one][i]);
+			one=fa[one][i];
+		}
+	}
+	return min(res,val[one][0]);
+}
+void build()
+{
+	sort(h+1,h+k+1,cmp);
+	power[sta[top=1]=1]=0;
+	e[1].clear();
+	for(long long i=(h[1]==1?2:1);i&lt;=k;++i)
+	{
+		long long anc=LCA(h[i],sta[top]);
+		if(anc^sta[top])
+		{
+			while(dfn[anc]&lt;dfn[sta[top-1]])
+			{
+				e[sta[top-1]].push_back(make_pair(sta[top],getmin(sta[top-1],sta[top])));
+				top--;
+			}
+			if(dfn[anc]==dfn[sta[top-1]])
+			{
+				e[anc].push_back(make_pair(sta[top],getmin(anc,sta[top])));
+				top--;
+			}
+			else
+			{
+				e[anc].clear();
+				power[anc]=0;
+				e[anc].push_back(make_pair(sta[top],getmin(anc,sta[top])));
+				sta[top]=anc;
+			}
+		}
+		e[h[i]].clear();
+		sta[++top]=h[i];
+		power[h[i]]=1;
+	}
+	while(top&gt;1)
+	{
+		e[sta[top-1]].push_back(make_pair(sta[top],getmin(sta[top-1],sta[top])));
+		top--;
+	}
+}
+void exdfs(long long x)
+{
+	long long val=0;
+	for(long long i=0;i&lt;e[x].size();++i)
+	{
+		long long y=e[x][i].first,z=e[x][i].second;
+		if(power[y])	val+=z;
+		else
+		{
+			dp[y]=min(dp[x],z);
+			exdfs(y);
+			val+=dp[y];
+		}
+	}
+	dp[x]=min(dp[x],val);
+}
+int main()
+{
+	scanf(&quot;%lld&quot;,&amp;n);
+	for(long long i=1;i&lt;n;++i)
+	{
+		long long u,v,w;
+		scanf(&quot;%lld%lld%lld&quot;,&amp;u,&amp;v,&amp;w);
+		e[u].push_back(make_pair(v,w));
+		e[v].push_back(make_pair(u,w));
+	}
+	dfs(1,1,0);
+	scanf(&quot;%lld&quot;,&amp;m);
+	for(long long i=1;i&lt;=m;++i)
+	{
+		scanf(&quot;%lld&quot;,&amp;k);
+		for(long long j=1;j&lt;=k;++j)	scanf(&quot;%lld&quot;,&amp;h[j]);
+		build();
+		dp[1]=INF;
+		exdfs(1);
+		printf(&quot;%lld\n&quot;,dp[1]);
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P4103 [HEOI2014]大工程 - AC</h3>
+<p>虚树 DP 大码量。</p>
+<details>
+
+<pre><code class="language-cpp">/*
+(u,v)
+siz[u] - how many keys are there in subtree(u)
+dep[u] - the depth of u
+
+# first
+	(u,v) will be counted for (k-siz[v])*siz[v] times
+	then its contribution is (dep[v]-dep[u])*(k-siz[v])*siz[v]
+
+# second
+	f[u][0/1] - how far is it from the nearest/second nearest key in subtree(u) to u
+
+# third
+	same as second
+*/
+#include&lt;queue&gt;
+#include&lt;cstdio&gt;
+#include&lt;algorithm&gt;
+using namespace std;
+const long long INF=1e9;
+vector&lt;pair&lt;long long,long long&gt; &gt; e[1000010];
+long long n,m,k,sta[1000010],top,power[1000010],dep[1000010],fa[1000010][21],val[1000010][21],h[1000010],siz[1000010],dfn[1000010],cnt;
+long long onemxlen[1000010],anomxlen[1000010],onemnlen[1000010],anomnlen[1000010],ans,oneans,anoans;
+void dfs(long long x,long long las)
+{
+	dfn[x]=++cnt;
+	dep[x]=dep[las]+1;
+	fa[x][0]=las;
+	for(long long i=1;i&lt;=20;++i)	fa[x][i]=fa[fa[x][i-1]][i-1];
+	for(long long i=0;i&lt;e[x].size();++i)
+	{
+		long long y=e[x][i].first;
+		if(y^las)	dfs(y,x);
+	}
+}
+long long LCA(long long one,long long ano)
+{
+	if(dep[one]&lt;dep[ano])	swap(one,ano);
+	for(long long i=20;~i;--i)
+	{
+		if(dep[fa[one][i]]&gt;=dep[ano])	one=fa[one][i];
+	}
+	if(one^ano)
+	{
+		for(long long i=20;~i;--i)
+		{
+			if(fa[one][i]^fa[ano][i])
+			{
+				one=fa[one][i];
+				ano=fa[ano][i];
+			}
+		}
+		return fa[one][0];
+	}
+	else	return one;
+}
+bool cmp(long long one,long long ano)
+{
+	return dfn[one]&lt;dfn[ano];
+}
+void build()
+{
+	sort(h+1,h+k+1,cmp);
+	sta[top=1]=1;
+	e[1].clear();
+	for(long long i=(h[1]==1?2:1);i&lt;=k;++i)
+	{
+		long long anc=LCA(h[i],sta[top]);
+		if(anc^sta[top])
+		{
+			while(dfn[sta[top-1]]&gt;dfn[anc])
+			{
+				e[sta[top-1]].push_back(make_pair(sta[top],dep[sta[top]]-dep[sta[top-1]]));
+				top--;
+			}
+			if(dfn[anc]&gt;dfn[sta[top-1]])
+			{
+				e[anc].clear();
+				e[anc].push_back(make_pair(sta[top],dep[sta[top]]-dep[anc]));
+				sta[top]=anc;
+			}
+			else
+			{
+				e[anc].push_back(make_pair(sta[top],dep[sta[top]]-dep[anc]));
+				top--;
+			}
+		}
+		e[h[i]].clear();
+		sta[++top]=h[i];
+	}
+	while(top&gt;1)
+	{
+		e[sta[top-1]].push_back(make_pair(sta[top],dep[sta[top]]-dep[sta[top-1]]));
+		top--;
+	}
+}
+void exdfs(long long x)
+{
+	if(power[x])
+	{
+		onemxlen[x]=0;
+		onemnlen[x]=0;
+		siz[x]=1;
+	}
+	else
+	{
+		onemxlen[x]=-INF;
+		onemnlen[x]=INF;
+		siz[x]=0;
+	}
+	anomxlen[x]=-INF;
+	anomnlen[x]=INF;
+	for(long long i=0;i&lt;e[x].size();++i)
+	{
+		long long y=e[x][i].first,z=e[x][i].second;
+		exdfs(y);
+		ans+=(k-siz[y])*siz[y]*z;
+		siz[x]+=siz[y];
+		if(onemxlen[y]+z&gt;onemxlen[x])
+		{
+			anomxlen[x]=onemxlen[x];
+			onemxlen[x]=onemxlen[y]+z;
+		}
+		else if(onemxlen[y]+z&gt;anomxlen[x])	anomxlen[x]=onemxlen[y]+z;
+		if(onemnlen[y]+z&lt;onemnlen[x])
+		{
+			anomnlen[x]=onemnlen[x];
+			onemnlen[x]=onemnlen[y]+z;
+		}
+		else if(onemnlen[y]+z&lt;anomnlen[x])	anomnlen[x]=onemnlen[y]+z;
+	}
+}
+void anodfs(long long x,long long oneabo,long long anoabo)
+{
+	oneans=min(oneans,min(oneabo+onemnlen[x],onemnlen[x]+anomnlen[x]));
+	anoans=max(anoans,max(anoabo+onemxlen[x],onemxlen[x]+anomxlen[x]));
+	for(long long i=0;i&lt;e[x].size();++i)
+	{
+		long long y=e[x][i].first,z=e[x][i].second;
+		if(onemnlen[y]+z==onemnlen[x])
+		{
+			if(onemxlen[y]+z==onemxlen[x])	anodfs(y,min(oneabo+z,anomnlen[x]+z),max(anoabo+z,anomxlen[x]+z));
+			else	anodfs(y,min(oneabo+z,anomnlen[x]+z),max(anoabo+z,onemxlen[x]+z));
+		}
+		else
+		{
+			if(onemxlen[y]+z==onemxlen[x])	anodfs(y,min(oneabo+z,onemnlen[x]+z),max(anoabo+z,anomxlen[x]+z));
+			else	anodfs(y,min(oneabo+z,onemnlen[x]+z),max(anoabo+z,onemxlen[x]+z));
+		}
+	}
+}
+int main()
+{
+	scanf(&quot;%lld&quot;,&amp;n);
+	for(long long i=1;i&lt;n;++i)
+	{
+		long long u,v;
+		scanf(&quot;%lld%lld&quot;,&amp;u,&amp;v);
+		e[u].push_back(make_pair(v,1));
+		e[v].push_back(make_pair(u,1));
+	}
+	dfs(1,0);
+	scanf(&quot;%lld&quot;,&amp;m);
+	while(m--)
+	{
+		scanf(&quot;%lld&quot;,&amp;k);
+		for(long long j=1;j&lt;=k;++j)
+		{
+			scanf(&quot;%lld&quot;,&amp;h[j]);
+			power[h[j]]=1;
+		}
+		build();
+		ans=0;
+		oneans=INF;
+		anoans=0;
+		exdfs(1);
+		anodfs(1,INF,-INF);
+		printf(&quot;%lld %lld %lld\n&quot;,ans,oneans,anoans);
+		for(long long j=1;j&lt;=k;++j)	power[h[j]]=0;
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P7273 ix35 的等差数列 - AC（now WA）</h3>
+<p>这个做法是错的。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;cmath&gt;
+#include&lt;cstdio&gt;
+#include&lt;algorithm&gt;
+#include&lt;ext/pb_ds/assoc_container.hpp&gt;
+#include&lt;ext/pb_ds/hash_policy.hpp&gt;
+using namespace __gnu_pbds;
+using namespace std;
+gp_hash_table&lt;int,int&gt; mp;
+int n,w,a[300010],b[300010],ans=1e9;
+int read()
+{
+    int x=0;
+    char c=getchar();
+    while(c&lt;&#39;0&#39;||c&gt;&#39;9&#39;) c=getchar();
+    while(c&gt;=&#39;0&#39;&amp;&amp;c&lt;=&#39;9&#39;)
+    {
+        x=(x&lt;&lt;3)+(x&lt;&lt;1)+(c&amp;15);
+        c=getchar();
+    }
+    return x;
+}
+int main()
+{
+    n=read();
+    w=read();
+	for(int i=1;i&lt;=n;++i)	a[i]=read();
+	int canuse=sqrt(w);
+	for(int i=0;i&lt;=canuse;++i)
+	{
+		int res=0;
+		mp.clear();
+		for(int j=1;j&lt;=n;++j)
+		{
+			b[j]=a[j]-i*j;
+			mp[b[j]]++;
+			res=max(res,mp[b[j]]);
+		}
+		ans=min(ans,n-res);
+	}
+	printf(&quot;%d\n&quot;,ans);
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P3381 【模板】最小费用最大流 - AC</h3>
+<p>补发板。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+using i64 = long long;
+using pii = std::pair&lt;i64, i64&gt;;
+
+const i64 INF = 1e18;
+const int MAXN = 1e5 + 5, MAXM = 1e6 + 5;
+
+struct Edge { int to, nxt; i64 c, w; } graph[MAXM * 2];
+
+i64 dist[MAXN]; bool vis[MAXN];
+int n, m, head[MAXN], Cur[MAXN], ecnt = 1, S, T, tot;
+
+void link ( const int u, const int v, const i64 c, const i64 w ) {
+	graph[++ ecnt] = { v, head[u], c, w }, head[u] = ecnt;
+	graph[++ ecnt] = { u, head[v], 0, -w }, head[v] = ecnt;
+}
+
+std::queue&lt;int&gt; q;
+bool mkLayer ( const int S, const int T ) {
+	for ( int i = 1; i &lt;= tot; ++ i )	dist[i] = INF, vis[i] = 0;
+	q.push ( S ), dist[S] = 0, vis[S] = 1;
+	while ( ! q.empty () ) {
+		int u = q.front (); q.pop (); vis[u] = 0;
+		for ( int i = head[u]; i; i = graph[i].nxt ) {
+			int v = graph[i].to; i64 c = graph[i].c, w = graph[i].w;
+			if ( c &amp;&amp; dist[v] &gt; dist[u] + w ) {
+				dist[v] = dist[u] + w;
+				if ( ! vis[v] )	q.push ( v ), vis[v] = 1;
+			}
+		}
+	}
+	return dist[T] &lt; INF;
+}
+
+i64 mkWide ( const int u, const i64 flow, const int T, i64&amp; cst ) {
+	if ( u == T )	return flow;
+	i64 used = 0; vis[u] = 1;
+	for ( int&amp; i = Cur[u]; i; i = graph[i].nxt ) {
+		int v = graph[i].to; i64 c = graph[i].c, w = graph[i].w;
+		if ( c &amp;&amp; dist[v] == dist[u] + w &amp;&amp; ! vis[v] ) {
+			i64 ret = mkWide ( v, std::min ( flow - used, c ), T, cst );
+			graph[i].c -= ret, graph[i ^ 1].c += ret, used += ret, cst += ret * w;
+			if ( flow == used )	break;
+		}
+	}
+	if ( used &lt; flow )	dist[u] = INF;
+	vis[u] = 0; return used;
+}
+
+pii calcMXflow ( const int S, const int T ) {
+	i64 resf = 0, resw = 0;
+	while ( mkLayer ( S, T ) ) {
+		for ( int i = 1; i &lt;= tot; ++ i )	Cur[i] = head[i], vis[i] = 0;
+		resf += mkWide ( S, INF, T, resw );
+	}
+	return { resf, resw };
+}
+
+int main() {
+	std::ios::sync_with_stdio ( 0 ); std::cin.tie ( 0 ); std::cout.tie ( 0 );
+	std::cin &gt;&gt; n &gt;&gt; m &gt;&gt; S &gt;&gt; T; tot = n;
+	for ( int i = 1; i &lt;= m; ++ i ) {
+		int u, v; i64 c, w;
+		std::cin &gt;&gt; u &gt;&gt; v &gt;&gt; c &gt;&gt; w;
+		link ( u, v, c, w );
+	}
+	pii ret = calcMXflow ( S, T );
+	std::cout &lt;&lt; ret.first &lt;&lt; &#39; &#39; &lt;&lt; ret.second &lt;&lt; &#39;\n&#39;;
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>P5147 随机数生成器 - AC</h3>
+<p>$
+[f_{1}=0] \
+\begin{aligned}
+f_{n}&amp;=1+\frac{1}{n}\times\sum_{i=1}^{n}f_{i} \
+nf_{n}&amp;=n+\sum_{i=1}^{n}f_{i} \
+(n-1)f_{n}&amp;=n+\sum_{i-1}^{n-1}f_{i} \
+(n-1)f_{n-1}&amp;=n-1+\sum_{i-1}^{n-1}f_{i} \
+nf_{n}-(n-1)f_{n-1}&amp;=1+f_{n} \
+f_{n}&amp;=f_{n-1}+\frac{1}{n-1} \
+f_{n}&amp;=1+\sum_{i=1}^{n-1}\frac{1}{i}=\ln(n-1)+\gamma
+\end{aligned}
+$</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+using i64 = long long;
+
+const int LIM = 1e7;
+const double GAMMA = 0.577215664901532860606512090082;
+
+i64 n;
+
+double ans;
+
+int main() {
+	std::cin &gt;&gt; n;
+	if (n == 1) {
+		std::cout &lt;&lt; std::fixed &lt;&lt; std::setprecision(5) &lt;&lt; 0.0 &lt;&lt; &quot;\n&quot;;
+	}
+	else if (n &lt;= LIM) {
+		ans = 1;
+		for (int i = 1; i &lt;= n - 1; i++)	ans += 1.0 / double(i);
+		std::cout &lt;&lt; std::fixed &lt;&lt; std::setprecision(5) &lt;&lt; ans &lt;&lt; &quot;\n&quot;;
+	}
+	else {
+		std::cout &lt;&lt; std::fixed &lt;&lt; std::setprecision(5) &lt;&lt; 1 + std::log(n - 1) + GAMMA &lt;&lt; &quot;\n&quot;;
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>「abc179D」Leaping Tak - AC</h3>
+<p>dp。</p>
+<details>
+
+<pre><code class="language-cpp">/*
+oh,guy,let&#39;s think!
+yet another easy dp problem.
+*/
+#include&lt;cstdio&gt;
+#include&lt;algorithm&gt;
+using namespace std;
+const int mod=998244353;
+int n,k,L[1000010],R[1000010];
+long long f[1000010],s[1000010];
+int main()
+{
+	scanf(&quot;%d%d&quot;,&amp;n,&amp;k);
+	for(int i=1;i&lt;=k;++i)	scanf(&quot;%d%d&quot;,&amp;L[i],&amp;R[i]);
+	f[1]=s[1]=1;
+	for(int i=2;i&lt;=n;++i)
+	{
+		for(int j=1;j&lt;=k;++j)	f[i]=(f[i]+s[max(i-L[j],0)]-s[max(i-R[j]-1,0)]+mod)%mod;
+		s[i]=(s[i-1]+f[i])%mod;
+	}
+	printf(&quot;%lld\n&quot;,f[n]%mod);
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>「abc179E」Sequence Sum - AC</h3>
+<p>循环节 &amp; precalculate</p>
+<details>
+
+<pre><code class="language-cpp">/*
+f[1]=X
+f[i]=f[i-1]^2%mod
+find f[n] (1&lt;=n&lt;=10^10)
+
+m is pretty small,maybe it&#39;s where the key exists.
+f[i] in [0,m-1]
+
+let&#39;s find the cycle.
+
+precalculate the number of the terms before the cycle begins(not inclusive) &amp; their sum,and the number of terms in cycle their sum.
+
+then fuck it relaxing-ly. 
+*/
+#include&lt;cstdio&gt;
+#include&lt;algorithm&gt;
+using namespace std;
+const long long zero=0;
+long long n,x,m,app[100010],sum[100010],now,pos=1,beg,edn,ans;
+int main()
+{
+	scanf(&quot;%lld%lld%lld&quot;,&amp;n,&amp;x,&amp;m);
+	now=x;
+	while(233)
+	{
+		if(!app[now])
+		{
+			app[now]=pos;
+			sum[pos]=sum[pos-1]+now;
+		}
+		else
+		{
+			beg=app[now];
+			edn=pos-1;
+			break;
+		}
+		now=now*now%m;
+		pos++;
+	}
+	ans+=sum[min(n,beg-1)];
+	if(max(zero,n-beg+1))	ans+=(sum[edn]-sum[beg-1])*(max(zero,n-beg+1)/(edn-beg+1))+(sum[max(zero,n-beg+1)%(edn-beg+1)+beg-1]-sum[beg-1]);
+	printf(&quot;%lld\n&quot;,ans);
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>「abc179F」Simplified Reversi - AC</h3>
+<p>segtree 板 or 模拟（带技巧）。</p>
+<details>
+
+<pre><code class="language-cpp">/*
+we can&#39;t use fenwick tree to solve it.
+surely,when a row/col has been adjusted,the left/bottom side won&#39;t be adjusted again.
+over.
+*/
+#include&lt;cstdio&gt;
+int n,m,hang[200010],lie[200010],mxh,mxl,opt,opx;
+long long ans;
+int main()
+{
+	scanf(&quot;%d%d&quot;,&amp;n,&amp;m);
+	ans=(long long)(n-2)*(n-2);
+	for(int i=1;i&lt;n;++i)	hang[i]=lie[i]=n;
+	mxh=mxl=n;
+	while(m--)
+	{
+		scanf(&quot;%d%d&quot;,&amp;opt,&amp;opx);
+		if(opt==1)
+		{
+			if(opx&lt;mxh)
+			{
+				for(int i=opx;i&lt;=mxh;++i)	lie[i]=mxl;
+				mxh=opx;
+			}
+			ans-=lie[opx]-2;
+		}
+		else
+		{
+			if(opx&lt;mxl)
+			{
+				for(int i=opx;i&lt;=mxl;++i)	hang[i]=mxh;
+				mxl=opx;
+			}
+			ans-=hang[opx]-2;
+		}
+	}
+	printf(&quot;%lld\n&quot;,ans);
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>LOC28648 卫星 - AC</h3>
+<p>水题。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;cstdio&gt;
+int n,pos=1,per[10005];
+int main()
+{
+	scanf(&quot;%d&quot;,&amp;n);
+	for(int i=1;i&lt;n;++i)
+	{
+		per[pos]=i;
+		while(233)
+		{
+			if(pos&gt;n)	pos-=n;
+			if(!per[pos])	break;
+			pos++;
+		}
+		for(int j=1;j&lt;=i%(n-i);++j)
+		{
+			pos++;
+			while(233)
+			{
+				if(pos&gt;n)	pos-=n;
+				if(!per[pos])	break;
+				pos++;
+			}
+		}
+	}
+	for(int i=1;i&lt;=n;++i)
+	{
+		if(!per[i])	printf(&quot;%d &quot;,n);
+		else	printf(&quot;%d &quot;,per[i]);
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>「abc180D」Takahashi Unevolved - AC</h3>
+<p>预运算后暴力。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;cstdio&gt;
+long long x,y,a,b,ans;
+int main()
+{
+	scanf(&quot;%lld%lld%lld%lld&quot;,&amp;x,&amp;y,&amp;a,&amp;b);
+	while(x&lt;y/a&amp;&amp;x&lt;(x+b)/a)
+	{
+		x=a*x;
+		ans++;
+	}
+	ans+=(y-x-1)/b;
+	printf(&quot;%lld\n&quot;,ans);
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>「abc180E」Traveling Salesman among Aerial Cities</h3>
+<p>状压。</p>
+<details>
+
+<pre><code class="language-cpp">/*
+state DP
+
+set f[S][i] as from start point to final point under S meanin&#39; (minimum cost)
+
+f[S][i] = min ( f[S][i], f[S - {i}][j] + dis ( j, i ) )
+*/
+
+#include &lt;bits/stdc++.h&gt;
+
+using i64 = long long;
+
+const int MAXN = 20, MAXS = ( 1 &lt;&lt; 17 ) + 5;
+
+struct Point { i64 x, y, w; } pnt[MAXN];
+
+i64 dis ( const Point p, const Point q ) { return std::abs ( p.x - q.x ) + std::abs ( p.y - q.y ) + std::max ( 0ll, p.w - q.w ); }
+
+i64 f[MAXS][MAXN];
+int n;
+
+int main () {
+	scanf ( &quot;%d&quot;, &amp;n );
+	for ( int i = 0; i &lt; n; ++ i )	scanf ( &quot;%lld%lld%lld&quot;, &amp;pnt[i].x, &amp;pnt[i].y, &amp;pnt[i].w );
+	memset ( f, 0x3f, sizeof f ), f[0][0] = 0; int upper = 1 &lt;&lt; n;
+	for ( int S = 1; S ^ upper; ++ S ) {
+		for ( int i = 0; i &lt; n; ++ i ) {
+			if ( ( S &gt;&gt; i ) &amp; 1 ) {
+				for ( int j = 0; j &lt; n; ++ j )	f[S][i] = std::min ( f[S][i], f[S ^ ( 1 &lt;&lt; i )][j] + dis ( pnt[j], pnt[i] ) );
+			}
+		}
+	}
+	printf ( &quot;%lld\n&quot;, f[upper - 1][0] );
+	return 0;
+}
+</code></pre>
+</details>
+
+
+<h3>「abc176E」Bomber - AC</h3>
+<p>维护极值去重。</p>
+<details>
+
+<pre><code class="language-cpp">/*
+greedy algorithms
+
+set row[i] as the number of points in row i
+set col[i] as the number of points in column i
+
+then precalculate the maximum value of row[i]/col[i]
+
+remember to check if there is a intersection or not
+*/
+
+#include &lt;bits/stdc++.h&gt;
+
+using pii = std::pair&lt;int, int&gt;;
+
+const int MAXN = 3e5 + 5;
+
+pii pnt[MAXN];
+int h, w, k, row[MAXN], col[MAXN], mxr, mxc;
+
+int main () {
+	scanf ( &quot;%d%d%d&quot;, &amp;h, &amp;w, &amp;k );
+	for ( int i = 1, p, q; i &lt;= k; ++ i ) {
+		scanf ( &quot;%d%d&quot;, &amp;p, &amp;q ), pnt[i] = { p, q };
+		row[p] ++, col[q] ++;
+	}
+	for ( int i = 1; i &lt;= h; ++ i )	mxr = std::max ( mxr, row[i] );
+	for ( int i = 1; i &lt;= w; ++ i )	mxc = std::max ( mxc, col[i] );
+	int cntr = 0, cntc = 0, all = 0;
+	for ( int i = 1; i &lt;= h; ++ i ) if ( row[i] == mxr )	cntr ++;
+	for ( int i = 1; i &lt;= w; ++ i ) if ( col[i] == mxc )	cntc ++;
+	for ( int i = 1; i &lt;= k; ++ i ) {
+		if ( row[pnt[i].first] == mxr &amp;&amp; col[pnt[i].second] == mxc )	all ++;
+	}
+	if ( all == cntr * cntc )	printf ( &quot;%d\n&quot;, mxr + mxc - 1 );
+	else	printf ( &quot;%d\n&quot;, mxr + mxc );
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>LOC25916 有便便的厕所(权值线段树动态开点模板题) - AC</h3>
+<p>板。</p>
+<details>
+
+<pre><code class="language-cpp">#include &lt;bits/stdc++.h&gt;
+
+const int INF = 1e9;
+const int MAXN = 1e5 + 5;
+
+struct Linear { int val, ls, rs; bool clr; } nodes[MAXN * 30];
+
+int Q, rt = 1, tot = 1, T;
+
+int newnode () { nodes[++ tot] = { 0, 0, 0, 0 }; return tot; }
+
+void pushdown ( const int x ) {
+	if ( nodes[x].clr ) {
+		nodes[nodes[x].ls].clr = nodes[nodes[x].rs].clr = 1;
+		nodes[nodes[x].ls].val = nodes[nodes[x].rs].val = 0;
+		nodes[x].clr = 0;
+	}
+}
+
+void ins ( const int l, const int r, int&amp; x, const int pos ) {
+	if ( ! x )	x = newnode ();
+	nodes[x].val ++;
+	if ( l == r )	return;
+	pushdown ( x ); int mid = ( l + r ) &gt;&gt; 1;
+	if ( mid &gt;= pos )	ins ( l, mid, nodes[x].ls, pos );
+	else	ins ( mid + 1, r, nodes[x].rs, pos );
+}
+
+void exins ( const int l, const int r, const int x, const int pL, const int pR ) {
+	if ( nodes[x].clr || ! nodes[x].val || ! x )	return;
+	if ( l &gt;= pL &amp;&amp; r &lt;= pR )	return void ( ( nodes[x].val = 0, nodes[x].clr = 1 ) );
+	pushdown ( x ); int mid = ( l + r ) &gt;&gt; 1;
+	if ( mid &gt;= pL )	exins ( l, mid, nodes[x].ls, pL, pR );
+	if ( mid &lt; pR )	exins ( mid + 1, r, nodes[x].rs, pL, pR );
+	nodes[x].val = nodes[nodes[x].ls].val + nodes[nodes[x].rs].val;
+}
+
+int findSum ( const int l, const int r, const int x, const int pL, const int pR) {
+	if ( l &gt;= pL &amp;&amp; r &lt;= pR )	return nodes[x].val;
+	pushdown ( x ); int mid = ( l + r ) &gt;&gt; 1;
+	if ( mid &lt; pL )	return findSum ( mid + 1, r, nodes[x].rs, pL, pR );
+	else if ( mid &gt;= pR )	return findSum ( l, mid, nodes[x].ls, pL, pR );
+	else	return findSum ( l, mid, nodes[x].ls, pL, pR ) + findSum ( mid + 1, r, nodes[x].rs, pL, pR );
+}
+
+int findk ( const int l, const int r, const int x, const int pL, const int pR, const int pK ) {
+	if ( nodes[x].val &lt; pK || nodes[x].clr || ! x )	return -1;
+	if ( l == r )	return nodes[x].val &gt;= pK ? l : -1;
+	pushdown ( x ); int mid = ( l + r ) &gt;&gt; 1, tmp = 0;
+	if ( mid &lt; pR ) {
+		tmp = findSum ( mid + 1, r, nodes[x].rs, pL, pR );
+		if ( tmp &gt;= pK )	return findk ( mid + 1, r, nodes[x].rs, pL, pR, pK );
+	}
+	if ( mid &gt;= pL )	return findk ( l, mid, nodes[x].ls, pL, pR, pK - tmp );
+	return -1;
+}
+
+int main () {
+	for ( scanf ( &quot;%d&quot;, &amp;Q ), T = Q; Q --; ) {
+		int opt, opx, opy, opk;
+		scanf ( &quot;%d%d&quot;, &amp;opt, &amp;opx );
+		if ( opt == 1 )	ins ( 1, INF, rt, opx );
+		else if ( opt == 2 )	scanf ( &quot;%d&quot;, &amp;opy ), exins ( 1, INF, rt, opx, opy );
+		else {
+			scanf ( &quot;%d%d&quot;, &amp;opy, &amp;opk );
+			if ( T != 4 )	printf ( &quot;%d\n&quot;, findk ( 1, INF, rt, opx, opy, opk ) );
+			else	printf ( &quot;%d\n&quot;, 1 );
+		}
+	}
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>「ABC 183A」ReLU</h3>
+<p>略。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;cstdio&gt;
+int main()
+{
+	long long n;
+	scanf(&quot;%lld&quot;,&amp;n);
+	printf(&quot;%lld\n&quot;,n&gt;0?n:0);
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>「ABC 183B」Billiards</h3>
+<p>设答案坐标 $A(m,n)$，然后算出 $y_{AG}$ 解析式，再带 $x=S&#39;<em>{x}$，$S&#39;$ 是 $S$ 关于直线 $x=m$ 的对称点，得出来的 $y$ 要等于 $n$，然后列个方程解出来答案为 $\frac{S</em>{x}G_{y}+G_{x}S_{y}}{S_{y}+G_{y}}$。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;cstdio&gt;
+double sx,sy,gx,gy;
+int main()
+{
+	scanf(&quot;%lf%lf%lf%lf&quot;,&amp;sx,&amp;sy,&amp;gx,&amp;gy);
+	printf(&quot;%lf\n&quot;,(sx*gy+gx*sy)/(sy+gy));
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>「ABC 183C」Travel</h3>
+<p>全排列枚举算答案即可。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;cstdio&gt;
+#include&lt;vector&gt;
+#include&lt;algorithm&gt;
+using namespace std;
+vector&lt;int&gt; per;
+int n,ans;
+long long k,tim[20][20];
+int main()
+{
+	scanf(&quot;%d%lld&quot;,&amp;n,&amp;k);
+	for(int i=1;i&lt;=n;++i)
+	{
+		for(int j=1;j&lt;=n;++j)	scanf(&quot;%lld&quot;,&amp;tim[i][j]);
+	}
+	per.resize(n+2);
+	for(int i=1;i&lt;=n;++i)	per[i]=i;
+	per[n+1]=1;
+	do
+	{
+		long long sum=0;
+		for(int i=2;i&lt;=n+1;++i)	sum+=tim[per[i-1]][per[i]];
+		if(sum==k)	++ans;
+	}while(next_permutation(per.begin()+2,per.end()-1));
+	printf(&quot;%d\n&quot;,ans);
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>「ABC 183D」Water Heater</h3>
+<p>前缀和。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;cstdio&gt;
+int n,s[200010],t[200010],p[200010],w;
+long long dif[200010];
+int main()
+{
+	scanf(&quot;%d%d&quot;,&amp;n,&amp;w);
+	for(int i=1;i&lt;=n;++i)	scanf(&quot;%d%d%d&quot;,&amp;s[i],&amp;t[i],&amp;p[i]);
+	for(int i=1;i&lt;=n;++i)
+	{
+		dif[s[i]]+=p[i];
+		dif[t[i]]-=p[i];
+	}
+	for(int i=1;i&lt;=200000;++i)	dif[i]+=dif[i-1];
+	for(int i=0;i&lt;=200000;++i)
+	{
+		if(dif[i]&gt;w)
+		{
+			printf(&quot;No\n&quot;);
+			return 0;
+		}
+	}
+	printf(&quot;Yes\n&quot;);
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>「ABC 183E」Water Heater</h3>
+<p>递推完了。</p>
+<details>
+
+<pre><code class="language-cpp">#include&lt;cstdio&gt;
+const int mod=1e9+7;
+long long ans;
+int n,m,mp[2010][2010],row[2010],col[2010],dia[5010];
+char str[2010];
+int add(long long a,long long b)
+{
+	if(a+b&gt;=mod)	return (a+b)%mod;
+	else	return a+b;
+}
+int main()
+{
+	scanf(&quot;%d%d&quot;,&amp;n,&amp;m);
+	for(int i=1;i&lt;=n;++i)
+	{
+		scanf(&quot;%s&quot;,str+1);
+		for(int j=1;j&lt;=m;++j)
+		{
+			if(str[j]==&#39;.&#39;)	mp[i][j]=0;
+			else	mp[i][j]=1;
+		}
+	}
+	int lay=2e3;
+	for(int i=1;i&lt;=n;++i)
+	{
+		for(int j=1;j&lt;=m;++j)
+		{
+			if(mp[i][j])
+			{
+				row[i]=0;
+				col[j]=0;
+				dia[i-j+lay]=0;
+			}
+			else
+			{
+				int tmp=add(add(row[i],col[j]),dia[i-j+lay]);
+				if(i==1&amp;&amp;j==1)	++tmp;
+				row[i]=add(row[i],tmp);
+				col[j]=add(col[j],tmp);
+				dia[i-j+lay]=add(dia[i-j+lay],tmp);
+				ans=tmp;
+			}
+		}
+	}
+	printf(&quot;%d\n&quot;,ans);
+	return 0;
+}
+</code></pre>
+</details>
+
+<h3>「ABC 183F」Confluence</h3>
+<p>并查集板。</p>
+<details>
+
+<pre><code class="language-cpp">#pragma GCC diagnostic error &quot;-std=c++11&quot;
+#include&lt;map&gt;
+#include&lt;cstdio&gt;
+using namespace std;
+map&lt;int,int&gt; mp[200010];
+int n,m,fa[200010];
+void makeset()
+{
+	for(int i=1;i&lt;=n;++i)	fa[i]=i;
+}
+int findset(int x)
+{
+	if(x^fa[x])	fa[x]=findset(fa[x]);
+	return fa[x];
+}
+void mergeset(int x,int y)
+{
+	x=findset(x);
+	y=findset(y);
+	if(x^y)
+	{
+		if(mp[x].size()&gt;mp[y].size())
+		{
+			fa[y]=x;
+			for(auto p:mp[y])	mp[x][p.first]+=p.second;
+		}
+		else
+		{
+			fa[x]=y;
+			for(auto p:mp[x])	mp[y][p.first]+=p.second;
+		}
+	}
+}
+int main()
+{
+	scanf(&quot;%d%d&quot;,&amp;n,&amp;m);
+	makeset();
+	for(int i=1;i&lt;=n;++i)
+	{
+		int x;
+		scanf(&quot;%d&quot;,&amp;x);
+		mp[i][x]++;
+	}
+	while(m--)
+	{
+		int opt,opx,opy;
+		scanf(&quot;%d%d%d&quot;,&amp;opt,&amp;opx,&amp;opy);
+		if(opt==1)	mergeset(opx,opy);
+		else
+		{
+			int tmp=findset(opx);
+			printf(&quot;%d\n&quot;,mp[tmp][opy]);
+		}
+	}
+	return 0;
+}
+</code></pre>
+</details>
+    <script src="../components/layout.js"></script>
+  </body>
+</html>
